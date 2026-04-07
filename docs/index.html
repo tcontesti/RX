@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CXR Nodule Detection — Detección automática de nódulos pulmonares · UIB & Son Llàtzer</title>
+<meta name="description" content="Detección automática de nódulos pulmonares en radiografías de tórax mediante deep learning. Trabajo de Marc Link Cladera y Antonio Contestí Coll en la UIB, extendido como prototipo asistencial en colaboración con el Hospital Universitari Son Llàtzer.">
+<meta name="author" content="Marc Link Cladera, Antonio Contestí Coll">
+<meta property="og:title" content="CXR Nodule Detection — Detección automática de nódulos pulmonares en radiografías de tórax">
+<meta property="og:description" content="Auditoría sistemática del estado del arte, cuantificación del data leakage y ensemble eficiente Faster R-CNN + YOLOv8 + WBF. Prototipo asistencial validado por radiología.">
+<meta property="og:type" content="article">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@200;300;400;500;600;700&family=Newsreader:ital,opsz,wght@1,6..72,300;1,6..72,400&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        fontFamily: {
+          sans: ['"Inter Tight"', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+          serif: ['Newsreader', 'Georgia', 'serif'],
+          mono: ['"JetBrains Mono"', 'monospace'],
+        },
+        colors: {
+          paper: '#fafaf9',
+          ink: {
+            DEFAULT: '#0a0a0a',
+            900: '#0a0a0a',
+            800: '#171717',
+            700: '#262626',
+            600: '#404040',
+            500: '#737373',
+            400: '#a3a3a3',
+            300: '#d4d4d4',
+            200: '#e5e5e5',
+            100: '#f5f5f5',
+            50: '#fafafa',
+          },
+        },
+        letterSpacing: {
+          'tightest': '-0.04em',
+          'tighter-2': '-0.025em',
+          'micro': '0.12em',
+          'wider-2': '0.18em',
+          'widest-2': '0.24em',
+        },
+      },
+    },
+  };
+</script>
+
+<style>
+  html, body {
+    background: #fafaf9;
+    color: #0a0a0a;
+  }
+  body {
+    font-feature-settings: "ss01", "ss02", "cv11", "cv02";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  .display {
+    font-feature-settings: "ss01", "cv11";
+  }
+  .num {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum", "ss01";
+  }
+  .rule-top    { box-shadow: inset 0 1px 0 #e5e5e5; }
+  .rule-bottom { box-shadow: inset 0 -1px 0 #e5e5e5; }
+  .rule-left   { box-shadow: inset 1px 0 0 #e5e5e5; }
+  .link-u {
+    position: relative;
+    display: inline-block;
+  }
+  .link-u::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: -2px;
+    width: 100%;
+    height: 1px;
+    background: currentColor;
+    transform: scaleX(0);
+    transform-origin: right;
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .link-u:hover::after {
+    transform: scaleX(1);
+    transform-origin: left;
+  }
+  .fade {
+    opacity: 0;
+    animation: fadeIn 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  .d-1 { animation-delay: 0.05s; }
+  .d-2 { animation-delay: 0.15s; }
+  .d-3 { animation-delay: 0.25s; }
+  .d-4 { animation-delay: 0.35s; }
+  .d-5 { animation-delay: 0.45s; }
+  @keyframes fadeIn { to { opacity: 1; } }
+  .index-num {
+    font-family: '"JetBrains Mono"', monospace;
+    font-variant-numeric: tabular-nums;
+  }
+  pre.ascii {
+    font-family: '"JetBrains Mono"', monospace;
+    font-size: 12px;
+    line-height: 1.55;
+    color: #404040;
+    white-space: pre;
+    overflow-x: auto;
+  }
+</style>
+</head>
+
+<body class="font-sans text-ink">
+
+<!-- TOPBAR -->
+<div class="border-b border-ink-200">
+  <div class="max-w-screen-xl mx-auto px-6 sm:px-10 py-4 flex items-baseline justify-between text-[11px] uppercase tracking-widest-2 text-ink-500">
+    <div class="font-medium">
+      <span class="text-ink-800">UIB</span> &nbsp;·&nbsp; EPS &nbsp;·&nbsp; H. Son Llàtzer &nbsp;·&nbsp; 2025—2026
+    </div>
+    <div class="hidden sm:flex gap-8">
+      <a href="#trabajo" class="link-u hover:text-ink-800 transition-colors">Trabajo</a>
+      <a href="#prototipo" class="link-u hover:text-ink-800 transition-colors">Prototipo</a>
+      <a href="#colaboraciones" class="link-u hover:text-ink-800 transition-colors">Colaboraciones</a>
+      <a href="#material" class="link-u hover:text-ink-800 transition-colors">Material</a>
+    </div>
+  </div>
+</div>
+
+<!-- HERO -->
+<header class="border-b border-ink-200">
+  <div class="max-w-screen-xl mx-auto px-6 sm:px-10 pt-24 pb-32 sm:pt-40 sm:pb-48">
+    <div class="grid grid-cols-12 gap-6 sm:gap-10">
+
+      <div class="col-span-12 sm:col-span-3 fade d-1">
+        <div class="text-[11px] uppercase tracking-widest-2 text-ink-500 mb-3">TFG · UIB — EPS</div>
+        <div class="num text-[11px] tracking-wider text-ink-400">
+          MMXXVI / I
+        </div>
+      </div>
+
+      <div class="col-span-12 sm:col-span-9">
+        <h1 class="fade d-2 display font-sans font-light text-[clamp(2.5rem,6.5vw,6rem)] leading-[0.95] tracking-tightest text-ink">
+          CXR Nodule Detection<span class="text-ink-300">.</span>
+        </h1>
+
+        <p class="fade d-3 mt-10 font-serif italic text-2xl sm:text-3xl leading-snug text-ink-700 max-w-3xl">
+          Detección automática de nódulos pulmonares en radiografías de tórax.
+        </p>
+
+        <p class="fade d-4 mt-12 max-w-2xl text-base sm:text-lg leading-relaxed text-ink-600">
+          Auditoría sistemática del código del ganador NODE21, cuantificación del data leakage introducido por augmentaciones offline mal agrupadas y ensemble eficiente Faster R-CNN + YOLOv8 + Weighted Box Fusion. Acompañado de un prototipo asistencial con módulo de validación radiológica.
+        </p>
+
+        <div class="fade d-5 mt-16 flex flex-wrap gap-8 text-sm">
+          <a href="https://github.com/tcontesti/RX/blob/master/tfg/MemoriaTFG.pdf"
+             class="link-u font-medium text-ink-900">
+            Leer la memoria <span class="text-ink-400 ml-1">↗</span>
+          </a>
+          <a href="https://github.com/tcontesti/RX/wiki"
+             class="link-u text-ink-500 hover:text-ink-900 transition-colors">
+            Wiki del proyecto
+          </a>
+          <a href="https://github.com/tcontesti/RX"
+             class="link-u text-ink-500 hover:text-ink-900 transition-colors">
+            Código fuente
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</header>
+
+<!-- METADATOS -->
+<section class="border-b border-ink-200">
+  <div class="max-w-screen-xl mx-auto px-6 sm:px-10 py-12">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-10 text-sm">
+      <div>
+        <div class="text-[10px] uppercase tracking-widest-2 text-ink-400 mb-2">Autores</div>
+        <div class="text-ink-900">Marc Link Cladera</div>
+        <div class="text-ink-900">Antonio Contestí Coll</div>
+        <div class="text-ink-500 text-xs mt-1">EPS · UIB</div>
+      </div>
+      <div>
+        <div class="text-[10px] uppercase tracking-widest-2 text-ink-400 mb-2">Dirección</div>
+        <div class="text-ink-900">Dr. Miquel Miró Nicolau</div>
+        <div class="text-ink-500 text-xs mt-1 font-mono">miquel.miro@uib.es</div>
+      </div>
+      <div>
+        <div class="text-[10px] uppercase tracking-widest-2 text-ink-400 mb-2">Colaboración clínica</div>
+        <div class="text-ink-900">Dra. Ana Estremera Bauzá</div>
+        <div class="text-ink-500 text-xs mt-1">Servei de Radiologia · H. Son Llàtzer</div>
+      </div>
+      <div>
+        <div class="text-[10px] uppercase tracking-widest-2 text-ink-400 mb-2">Referencia internacional</div>
+        <div class="text-ink-900">Behrendt et al.</div>
+        <div class="text-ink-500 text-xs mt-1">TU Hamburg · NODE21 Challenge</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- NUMBERS -->
+<section class="border-b border-ink-200">
+  <div class="max-w-screen-xl mx-auto px-6 sm:px-10 py-20 sm:py-28">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-y-12 md:gap-0">
+      <div class="md:rule-left md:pl-10">
+        <div class="num display font-light text-6xl sm:text-7xl tracking-tightest text-ink">0.9391</div>
+        <div class="mt-3 text-[11px] uppercase tracking-widest-2 text-ink-500">NODE21 score (ensemble WBF)</div>
+      </div>
+      <div class="md:rule-left md:pl-10">
+        <div class="num display font-light text-6xl sm:text-7xl tracking-tightest text-ink">94.47<span class="text-ink-400 text-3xl align-top">%</span></div>
+        <div class="mt-3 text-[11px] uppercase tracking-widest-2 text-ink-500">Competition metric</div>
+      </div>
+      <div class="md:rule-left md:pl-10">
+        <div class="num display font-light text-6xl sm:text-7xl tracking-tightest text-ink">0.968</div>
+        <div class="mt-3 text-[11px] uppercase tracking-widest-2 text-ink-500">AUROC validación</div>
+      </div>
+      <div class="md:rule-left md:pl-10">
+        <div class="num display font-light text-6xl sm:text-7xl tracking-tightest text-ink">81<span class="text-ink-400 text-3xl align-top">ms</span></div>
+        <div class="mt-3 text-[11px] uppercase tracking-widest-2 text-ink-500">Latencia inferencia</div>
+      </div>
+    </div>
+    <div class="mt-12 text-xs text-ink-500 leading-relaxed max-w-3xl">
+      Resultados sobre el split público de NODE21 con protocolo anti-data-leakage. La métrica oficial NODE21 supera al ganador del Challenge (Behrendt et al., CM = 83.90 %) en +10.6 puntos absolutos.
+    </div>
+  </div>
+</section>
+
+<!-- TRABAJO -->
+<section id="trabajo" class="border-b border-ink-200">
+  <div class="max-w-screen-xl mx-auto px-6 sm:px-10 py-24 sm:py-32">
+
+    <div class="grid grid-cols-12 gap-6 sm:gap-10 mb-24">
+      <div class="col-span-12 sm:col-span-3">
+        <div class="index-num text-[11px] tracking-wider text-ink-400">01 — Trabajo</div>
+      </div>
+      <div class="col-span-12 sm:col-span-9">
+        <h2 class="display font-light text-4xl sm:text-5xl leading-[1.05] tracking-tighter-2 text-ink max-w-2xl">
+          Cuatro aportaciones que <span class="font-serif italic text-ink-700">se sostienen mutuamente</span>.
+        </h2>
+      </div>
+    </div>
+
+    <div class="space-y-px">
+      <article class="grid grid-cols-12 gap-6 sm:gap-10 py-12 rule-top">
+        <div class="col-span-12 sm:col-span-3">
+          <div class="index-num text-[11px] tracking-wider text-ink-500">A · AUDITORÍA</div>
+        </div>
+        <div class="col-span-12 sm:col-span-9">
+          <h3 class="text-xl sm:text-2xl font-medium leading-snug text-ink mb-4 tracking-tighter-2">
+            Auditoría sistemática del estado del arte
+          </h3>
+          <p class="text-ink-600 leading-relaxed max-w-2xl">
+            Revisión exhaustiva del código publicado por el grupo de Behrendt et al. (ganador NODE21). Se catalogan 26 bugs (ocho críticos) que comprometen la reproducibilidad. La conclusión documentada: la implementación de referencia es inutilizable y sólo se rescatan ~20 líneas (SWA, WeightedSampler, gradient clipping).
+          </p>
+        </div>
+      </article>
+
+      <article class="grid grid-cols-12 gap-6 sm:gap-10 py-12 rule-top">
+        <div class="col-span-12 sm:col-span-3">
+          <div class="index-num text-[11px] tracking-wider text-ink-500">B · LEAKAGE</div>
+        </div>
+        <div class="col-span-12 sm:col-span-9">
+          <h3 class="text-xl sm:text-2xl font-medium leading-snug text-ink mb-4 tracking-tighter-2">
+            Cuantificación del data leakage
+          </h3>
+          <p class="text-ink-600 leading-relaxed max-w-2xl">
+            Aplicar augmentaciones offline sin agrupar por imagen inflaba el score NODE21 en +6.7 puntos absolutos (0.9695 → 0.9025) por filtración entre splits. El protocolo limpio con <em class="font-serif italic">StratifiedGroupKFold</em> restituye las cifras honestas y revela el verdadero techo del modelo.
+          </p>
+        </div>
+      </article>
+
+      <article class="grid grid-cols-12 gap-6 sm:gap-10 py-12 rule-top">
+        <div class="col-span-12 sm:col-span-3">
+          <div class="index-num text-[11px] tracking-wider text-ink-500">C · ENSEMBLE</div>
+        </div>
+        <div class="col-span-12 sm:col-span-9">
+          <h3 class="text-xl sm:text-2xl font-medium leading-snug text-ink mb-4 tracking-tighter-2">
+            Ensemble eficiente: dos modelos vencen a veintiuno
+          </h3>
+          <p class="text-ink-600 leading-relaxed max-w-2xl">
+            Weighted Box Fusion sobre Faster R-CNN (con preentrenamiento VinDr-CXR) y YOLOv8s. El ensemble obtiene +2.6 puntos NODE21 y +5.3 puntos en Sens@0.25 FP frente al mejor modelo individual, con sólo 81 ms de latencia frente a los 21 detectores del SOTA NODE21.
+          </p>
+        </div>
+      </article>
+
+      <article class="grid grid-cols-12 gap-6 sm:gap-10 py-12 rule-top rule-bottom">
+        <div class="col-span-12 sm:col-span-3">
+          <div class="index-num text-[11px] tracking-wider text-ink-500">D · PROTOTIPO</div>
+        </div>
+        <div class="col-span-12 sm:col-span-9">
+          <h3 class="text-xl sm:text-2xl font-medium leading-snug text-ink mb-4 tracking-tighter-2">
+            Prototipo asistencial con validación radiológica
+          </h3>
+          <p class="text-ink-600 leading-relaxed max-w-2xl">
+            Aplicación web operativa con frontend Vue 3 trilingüe, backend FastAPI y worker GPU vía RabbitMQ. Incluye visor interactivo con zoom real, threshold slider dinámico, módulo de validación radiológica (correcto / parcial / incorrecto), corrección manual de bounding boxes y exportación CSV/JSON para reentrenamiento.
+          </p>
+        </div>
+      </article>
+    </div>
+
+  </div>
+</section>
+
+<!-- PROTOTIPO -->
+<section id="prototipo" class="border-b border-ink-200">
+  <div class="max-w-screen-xl mx-auto px-6 sm:px-10 py-24 sm:py-32">
+
+    <div class="grid grid-cols-12 gap-6 sm:gap-10 mb-20">
+      <div class="col-span-12 sm:col-span-3">
+        <div class="index-num text-[11px] tracking-wider text-ink-400">02 — Prototipo</div>
+      </div>
+      <div class="col-span-12 sm:col-span-9">
+        <h2 class="display font-light text-4xl sm:text-5xl leading-[1.05] tracking-tighter-2 text-ink max-w-2xl">
+          <span class="font-serif italic text-ink-700">End-to-end</span> en dos a tres segundos.
+        </h2>
+        <p class="mt-8 text-ink-600 leading-relaxed max-w-2xl">
+          Arquitectura asíncrona en cuatro saltos. El radiólogo sube la radiografía desde el navegador y recibe la inferencia en menos de tres segundos, con caja de detección, score y posibilidad de corregir o validar manualmente.
+        </p>
+      </div>
+    </div>
+
+    <pre class="ascii rule-top rule-bottom py-10 px-2 sm:px-8 my-12">
+   Radiólogo
+   ┌────────────┐
+   │  Navegador │
+   └─────┬──────┘
+         │  HTTPS upload (PNG / DICOM / MHA)
+         ▼
+   ┌────────────────────────┐
+   │  Frontend  · Vue 3     │
+   │  Tailwind  · i18n      │
+   └─────┬──────────────────┘
+         │  REST · async
+         ▼
+   ┌────────────────────────┐
+   │  Backend   · FastAPI   │  ◄─►  MySQL 8
+   │  Docker Compose        │       6 tablas
+   └─────┬──────────────────┘
+         │  AMQP   ·  cxr.inference
+         ▼
+   ┌────────────────────────┐
+   │  RabbitMQ 3.13         │
+   └─────┬──────────────────┘
+         │
+         ▼
+   ┌────────────────────────┐
+   │  Worker GPU · Spark    │
+   │  PyTorch 2 · CUDA 13   │
+   │  FRCNN + YOLOv8 + WBF  │
+   └────────────────────────┘                   </pre>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-px bg-ink-200">
+      <div class="bg-paper p-8 hover:bg-white transition-colors">
+        <div class="index-num text-[10px] tracking-widest text-ink-400 mb-4">M1</div>
+        <div class="text-base font-medium text-ink mb-1">Faster R-CNN</div>
+        <div class="text-xs text-ink-500 leading-relaxed">ResNet-50 + FPN · pre VinDr</div>
+      </div>
+      <div class="bg-paper p-8 hover:bg-white transition-colors">
+        <div class="index-num text-[10px] tracking-widest text-ink-400 mb-4">M2</div>
+        <div class="text-base font-medium text-ink mb-1">YOLOv8s</div>
+        <div class="text-xs text-ink-500 leading-relaxed">1024 × 1024 · COCO pretrain</div>
+      </div>
+      <div class="bg-paper p-8 hover:bg-white transition-colors">
+        <div class="index-num text-[10px] tracking-widest text-ink-400 mb-4">M3</div>
+        <div class="text-base font-medium text-ink mb-1">Weighted Box Fusion</div>
+        <div class="text-xs text-ink-500 leading-relaxed">IoU 0.20 · pesos 0.90 / 0.91</div>
+      </div>
+      <div class="bg-paper p-8 hover:bg-white transition-colors">
+        <div class="index-num text-[10px] tracking-widest text-ink-400 mb-4">M4</div>
+        <div class="text-base font-medium text-ink mb-1">Validación radiológica</div>
+        <div class="text-xs text-ink-500 leading-relaxed">Correcto / parcial / incorrecto</div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- COLABORACIONES -->
+<section id="colaboraciones" class="border-b border-ink-200">
+  <div class="max-w-screen-xl mx-auto px-6 sm:px-10 py-24 sm:py-32">
+
+    <div class="grid grid-cols-12 gap-6 sm:gap-10 mb-20">
+      <div class="col-span-12 sm:col-span-3">
+        <div class="index-num text-[11px] tracking-wider text-ink-400">03 — Colaboraciones</div>
+      </div>
+      <div class="col-span-12 sm:col-span-9">
+        <h2 class="display font-light text-4xl sm:text-5xl leading-[1.05] tracking-tighter-2 text-ink max-w-2xl">
+          Un trabajo <span class="font-serif italic text-ink-700">a tres bandas</span>.
+        </h2>
+      </div>
+    </div>
+
+    <div class="space-y-px">
+      <div class="grid grid-cols-12 gap-6 sm:gap-10 py-10 rule-top items-start">
+        <div class="col-span-3 sm:col-span-2 index-num text-[11px] tracking-wider text-ink-400">i</div>
+        <div class="col-span-9 sm:col-span-3">
+          <div class="text-[11px] uppercase tracking-widest-2 text-ink-400 mb-2">Dirección académica</div>
+          <div class="text-lg font-medium text-ink">UIB · EPS</div>
+        </div>
+        <div class="col-span-12 sm:col-span-7">
+          <p class="text-ink-600 leading-relaxed">
+            <strong class="font-medium text-ink">Dr. Miquel Miró Nicolau</strong> dirige el proyecto en la Escola Politècnica Superior de la Universitat de les Illes Balears. El trabajo se origina como Trabajo de Fin de Grado de <strong class="font-medium text-ink">Marc Link Cladera</strong> y <strong class="font-medium text-ink">Antonio Contestí Coll</strong>, y se extiende con la auditoría sistemática del estado del arte y el ensemble WBF.
+          </p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-12 gap-6 sm:gap-10 py-10 rule-top items-start">
+        <div class="col-span-3 sm:col-span-2 index-num text-[11px] tracking-wider text-ink-400">ii</div>
+        <div class="col-span-9 sm:col-span-3">
+          <div class="text-[11px] uppercase tracking-widest-2 text-ink-400 mb-2">Validación clínica</div>
+          <div class="text-lg font-medium text-ink">H. Son Llàtzer</div>
+        </div>
+        <div class="col-span-12 sm:col-span-7">
+          <p class="text-ink-600 leading-relaxed">
+            <strong class="font-medium text-ink">Dra. Ana Estremera Bauzá</strong>, jefa del Servei de Radiologia del Hospital Universitari Son Llàtzer (IB-Salut), valida el prototipo asistencial sobre casuística clínica real. La colaboración determina los requisitos del módulo de validación radiológica y guía la propuesta de integración con PACS y autenticación Keycloak.
+          </p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-12 gap-6 sm:gap-10 py-10 rule-top rule-bottom items-start">
+        <div class="col-span-3 sm:col-span-2 index-num text-[11px] tracking-wider text-ink-400">iii</div>
+        <div class="col-span-9 sm:col-span-3">
+          <div class="text-[11px] uppercase tracking-widest-2 text-ink-400 mb-2">Referencia internacional</div>
+          <div class="text-lg font-medium text-ink">TU Hamburg</div>
+        </div>
+        <div class="col-span-12 sm:col-span-7">
+          <p class="text-ink-600 leading-relaxed">
+            <strong class="font-medium text-ink">Behrendt et al.</strong> (Hamburg University of Technology), autores de la implementación ganadora del NODE21 Challenge publicada en <em class="font-serif italic">Scientific Reports</em> (Nature, 2023). Su código es el punto de referencia auditado y reproducido en este trabajo, y el baseline que el ensemble propuesto supera en +10.6 puntos absolutos en la métrica oficial.
+          </p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- MATERIAL -->
+<section id="material" class="border-b border-ink-200">
+  <div class="max-w-screen-xl mx-auto px-6 sm:px-10 py-24 sm:py-32">
+
+    <div class="grid grid-cols-12 gap-6 sm:gap-10 mb-20">
+      <div class="col-span-12 sm:col-span-3">
+        <div class="index-num text-[11px] tracking-wider text-ink-400">04 — Material</div>
+      </div>
+      <div class="col-span-12 sm:col-span-9">
+        <h2 class="display font-light text-4xl sm:text-5xl leading-[1.05] tracking-tighter-2 text-ink max-w-2xl">
+          Todo está <span class="font-serif italic text-ink-700">disponible</span>.
+        </h2>
+      </div>
+    </div>
+
+    <div class="space-y-px">
+      <a href="https://github.com/tcontesti/RX/blob/master/tfg/MemoriaTFG.pdf"
+         class="group grid grid-cols-12 gap-6 sm:gap-10 py-8 rule-top items-baseline">
+        <div class="col-span-2 sm:col-span-1 index-num text-[11px] tracking-wider text-ink-400">01</div>
+        <div class="col-span-10 sm:col-span-7">
+          <div class="text-lg sm:text-xl font-medium text-ink group-hover:text-ink-500 transition-colors">Memoria académica</div>
+          <div class="text-xs uppercase tracking-widest-2 text-ink-400 mt-1">PDF · LaTeX IEEE · figuras completas</div>
+        </div>
+        <div class="hidden sm:block col-span-3 text-right text-sm text-ink-400 group-hover:text-ink transition-colors font-medium">
+          tfg/MemoriaTFG.pdf
+        </div>
+        <div class="col-span-12 sm:col-span-1 text-right text-ink-400 group-hover:translate-x-1 group-hover:text-ink transition-all">↗</div>
+      </a>
+
+      <a href="https://github.com/tcontesti/RX/wiki"
+         class="group grid grid-cols-12 gap-6 sm:gap-10 py-8 rule-top items-baseline">
+        <div class="col-span-2 sm:col-span-1 index-num text-[11px] tracking-wider text-ink-400">02</div>
+        <div class="col-span-10 sm:col-span-7">
+          <div class="text-lg sm:text-xl font-medium text-ink group-hover:text-ink-500 transition-colors">Wiki del proyecto</div>
+          <div class="text-xs uppercase tracking-widest-2 text-ink-400 mt-1">Diez páginas de documentación técnica y experimental</div>
+        </div>
+        <div class="hidden sm:block col-span-3 text-right text-sm text-ink-400 group-hover:text-ink transition-colors font-medium">
+          RX/wiki
+        </div>
+        <div class="col-span-12 sm:col-span-1 text-right text-ink-400 group-hover:translate-x-1 group-hover:text-ink transition-all">↗</div>
+      </a>
+
+      <a href="https://github.com/tcontesti/RX"
+         class="group grid grid-cols-12 gap-6 sm:gap-10 py-8 rule-top items-baseline">
+        <div class="col-span-2 sm:col-span-1 index-num text-[11px] tracking-wider text-ink-400">03</div>
+        <div class="col-span-10 sm:col-span-7">
+          <div class="text-lg sm:text-xl font-medium text-ink group-hover:text-ink-500 transition-colors">Repositorio principal</div>
+          <div class="text-xs uppercase tracking-widest-2 text-ink-400 mt-1">Memoria, worker GPU, scripts y pipeline experimental</div>
+        </div>
+        <div class="hidden sm:block col-span-3 text-right text-sm text-ink-400 group-hover:text-ink transition-colors font-medium">
+          github.com / tcontesti / RX
+        </div>
+        <div class="col-span-12 sm:col-span-1 text-right text-ink-400 group-hover:translate-x-1 group-hover:text-ink transition-all">↗</div>
+      </a>
+
+      <a href="https://github.com/tcontesti/cxr-detection"
+         class="group grid grid-cols-12 gap-6 sm:gap-10 py-8 rule-top items-baseline">
+        <div class="col-span-2 sm:col-span-1 index-num text-[11px] tracking-wider text-ink-400">04</div>
+        <div class="col-span-10 sm:col-span-7">
+          <div class="text-lg sm:text-xl font-medium text-ink group-hover:text-ink-500 transition-colors">Backend del prototipo</div>
+          <div class="text-xs uppercase tracking-widest-2 text-ink-400 mt-1">FastAPI · SQLAlchemy · Docker Compose</div>
+        </div>
+        <div class="hidden sm:block col-span-3 text-right text-sm text-ink-400 group-hover:text-ink transition-colors font-medium">
+          tcontesti / cxr-detection
+        </div>
+        <div class="col-span-12 sm:col-span-1 text-right text-ink-400 group-hover:translate-x-1 group-hover:text-ink transition-all">↗</div>
+      </a>
+
+      <a href="https://github.com/tcontesti/cxr-frontend"
+         class="group grid grid-cols-12 gap-6 sm:gap-10 py-8 rule-top items-baseline">
+        <div class="col-span-2 sm:col-span-1 index-num text-[11px] tracking-wider text-ink-400">05</div>
+        <div class="col-span-10 sm:col-span-7">
+          <div class="text-lg sm:text-xl font-medium text-ink group-hover:text-ink-500 transition-colors">Frontend del prototipo</div>
+          <div class="text-xs uppercase tracking-widest-2 text-ink-400 mt-1">Vue 3.5 · Tailwind 4 · Vite 7 · i18n ES/CA/EN</div>
+        </div>
+        <div class="hidden sm:block col-span-3 text-right text-sm text-ink-400 group-hover:text-ink transition-colors font-medium">
+          tcontesti / cxr-frontend
+        </div>
+        <div class="col-span-12 sm:col-span-1 text-right text-ink-400 group-hover:translate-x-1 group-hover:text-ink transition-all">↗</div>
+      </a>
+
+      <a href="https://github.com/tcontesti/RX/blob/master/docs/BEHRENDT_BUGS_ANALYSIS.md"
+         class="group grid grid-cols-12 gap-6 sm:gap-10 py-8 rule-top rule-bottom items-baseline">
+        <div class="col-span-2 sm:col-span-1 index-num text-[11px] tracking-wider text-ink-400">06</div>
+        <div class="col-span-10 sm:col-span-7">
+          <div class="text-lg sm:text-xl font-medium text-ink group-hover:text-ink-500 transition-colors">Auditoría del código de referencia</div>
+          <div class="text-xs uppercase tracking-widest-2 text-ink-400 mt-1">26 bugs catalogados en la implementación de Behrendt et al.</div>
+        </div>
+        <div class="hidden sm:block col-span-3 text-right text-sm text-ink-400 group-hover:text-ink transition-colors font-medium">
+          docs / BEHRENDT_BUGS_ANALYSIS.md
+        </div>
+        <div class="col-span-12 sm:col-span-1 text-right text-ink-400 group-hover:translate-x-1 group-hover:text-ink transition-all">↗</div>
+      </a>
+    </div>
+
+  </div>
+</section>
+
+<!-- CITA -->
+<section class="border-b border-ink-200">
+  <div class="max-w-screen-xl mx-auto px-6 sm:px-10 py-24 sm:py-32">
+
+    <div class="grid grid-cols-12 gap-6 sm:gap-10 mb-16">
+      <div class="col-span-12 sm:col-span-3">
+        <div class="index-num text-[11px] tracking-wider text-ink-400">05 — Citación</div>
+      </div>
+      <div class="col-span-12 sm:col-span-9">
+        <h2 class="display font-light text-4xl sm:text-5xl leading-[1.05] tracking-tighter-2 text-ink max-w-2xl">
+          Si este trabajo te resulta <span class="font-serif italic text-ink-700">útil</span>.
+        </h2>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-12 gap-6 sm:gap-10">
+      <div class="col-span-12 sm:col-span-3"></div>
+      <div class="col-span-12 sm:col-span-9">
+        <div class="font-mono text-xs sm:text-sm leading-loose text-ink-700 max-w-3xl whitespace-pre-wrap">@misc{link_contesti_2026_cxr,
+  <span class="text-ink-400">author</span>       = "Link Cladera, Marc and Contestí Coll, Antonio",
+  <span class="text-ink-400">title</span>        = "Detección automática de nódulos pulmonares
+                  en radiografías de tórax mediante deep learning",
+  <span class="text-ink-400">year</span>         = "2026",
+  <span class="text-ink-400">howpublished</span> = "Bachelor's Thesis, Escola Politècnica
+                  Superior, Universitat de les Illes Balears",
+  <span class="text-ink-400">note</span>         = "Supervisor: Dr. Miquel Miró Nicolau.
+                  Clinical collaboration: Dra. Ana Estremera Bauzá,
+                  Hospital Universitari Son Llàtzer."
+}</div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="max-w-screen-xl mx-auto px-6 sm:px-10 py-16">
+    <div class="grid grid-cols-12 gap-6 sm:gap-10">
+      <div class="col-span-12 sm:col-span-6">
+        <div class="display font-light text-3xl sm:text-4xl tracking-tighter-2 text-ink">CXR Nodule Detection.</div>
+        <div class="text-xs uppercase tracking-widest-2 text-ink-400 mt-3">UIB · EPS · H. Son Llàtzer · 2025—2026</div>
+      </div>
+      <div class="col-span-6 sm:col-span-3">
+        <div class="text-[10px] uppercase tracking-widest-2 text-ink-400 mb-3">Licencia</div>
+        <a href="https://github.com/tcontesti/RX/blob/master/LICENSE" class="link-u text-sm text-ink-700 hover:text-ink-900">CC BY-NC 4.0</a>
+        <div class="text-xs text-ink-500 mt-2 leading-relaxed">El material de terceros (datasets, modelos preentrenados, implementaciones de referencia) conserva su licencia original.</div>
+      </div>
+      <div class="col-span-6 sm:col-span-3">
+        <div class="text-[10px] uppercase tracking-widest-2 text-ink-400 mb-3">Enlaces</div>
+        <div class="space-y-1 text-sm">
+          <a href="https://github.com/tcontesti/RX" class="link-u block text-ink-700 hover:text-ink-900">GitHub</a>
+          <a href="https://github.com/tcontesti/RX/wiki" class="link-u block text-ink-700 hover:text-ink-900">Wiki</a>
+          <a href="https://github.com/tcontesti/RX/blob/master/tfg/MemoriaTFG.pdf" class="link-u block text-ink-700 hover:text-ink-900">Memoria</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

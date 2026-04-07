@@ -1,0 +1,93 @@
+# NODE21 - Pulmonary nodule detection on chest X-rays
+project:
+  name: "NODE21_nodule_detection"
+  description: "Pulmonary nodule detection on chest X-rays"
+
+dataset:
+  name: "NODE21"
+  csv_path: "data/metadata_augmented_spark.csv"
+  img_dir: "data/png_images"
+  num_classes: 2
+  class_names: ["background", "nodule"]
+  img_size: 1024
+  format: "png"
+  annotations: "xywh"
+  split:
+    method: "stratified_group_kfold"
+    n_folds: 5
+    random_state: 42
+    group_column: "base_img_name"
+    test_size: 0.2
+
+model:
+  type: "frcnn"
+  backbone: "resnet50_fpn"
+  pretrained_weights: "weights/fastercnn50.pth"
+  pretrained_source: "vindr"
+  num_classes: 2
+  input_channels: 3
+  input_mode: "grayscale_x3"
+  freeze_layers: ["conv1", "bn1", "layer1", "layer2", "layer3"]
+  trainable_layers: ["layer4", "fpn", "rpn", "head"]
+  score_thresh: 0.005
+  nms_thresh: 0.2
+  attention: null
+  cbam_channels: 2048
+  cbam_reduction: 16
+
+training:
+  optimizer: "adamw"
+  lr: 1.0e-4
+  weight_decay: 1.0e-4
+  epochs: 40
+  batch_size: 2
+  num_workers: 2
+  pin_memory: true
+  patience: 20
+  min_delta: 0.0001
+  checkpoint_by: "node21_score"
+  eval_every: 2
+  swa:
+    enabled: false
+    start_epoch: 35
+    lr: 1.0e-5
+    anneal_epochs: 5
+  gradient_clip: 0.0
+  weighted_sampler: false
+  mixed_precision: true
+  seed: 42
+  augmentation:
+    online: true
+    horizontal_flip: 0.5
+    vertical_flip: 0.0
+    brightness_contrast: [0.2, 0.2, 0.3]
+    affine:
+      translate: 0.05
+      scale: [0.9, 1.1]
+      rotate: [-10, 10]
+      p: 0.5
+    blur: [3, 0.2]
+    cutout: [0.05, 0.3]
+    mosaic: 0.0
+    mixup: 0.0
+    hsv_h: 0.0
+    hsv_s: 0.0
+    hsv_v: 0.0
+
+evaluation:
+  iou_thresh: 0.2
+  score_thresh: 0.005
+  fp_levels: [0.25, 0.5, 1.0, 2.0, 4.0, 8.0]
+  metrics:
+    - "node21_score"
+    - "auroc"
+    - "competition_metric"
+    - "froc_curve"
+    - "sensitivity_per_fp"
+
+output:
+  checkpoint_dir: "checkpoints"
+  results_dir: "results"
+  save_best_by: "node21_score"
+  save_every_epoch: true
+  visualize_detections: 30

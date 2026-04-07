@@ -1,0 +1,110 @@
+# VinDr-CXR - Multi-pathology detection (22 findings)
+project:
+  name: "VinDr_CXR_22_pathologies"
+  description: "Multi-pathology detection on chest X-rays (22 findings)"
+
+dataset:
+  name: "VinDr-CXR"
+  csv_path: "data/vindr/annotations_train.csv"
+  img_dir: "data/vindr/images"
+  num_classes: 23
+  class_names:
+    - "background"
+    - "aortic_enlargement"
+    - "atelectasis"
+    - "calcification"
+    - "cardiomegaly"
+    - "clavicle_fracture"
+    - "consolidation"
+    - "edema"
+    - "emphysema"
+    - "enlarged_pa"
+    - "ild"
+    - "infiltration"
+    - "lung_cavity"
+    - "lung_cyst"
+    - "lung_opacity"
+    - "mediastinal_shift"
+    - "nodule_mass"
+    - "pulmonary_fibrosis"
+    - "pneumothorax"
+    - "pleural_thickening"
+    - "pleural_effusion"
+    - "rib_fracture"
+    - "other_lesion"
+  img_size: 1024
+  format: "dicom"
+  annotations: "xyxy"
+  split:
+    method: "stratified_group_kfold"
+    n_folds: 5
+    group_column: "image_id"
+
+model:
+  type: "frcnn"
+  backbone: "resnet50_fpn"
+  pretrained_weights: null
+  pretrained_source: "coco"
+  num_classes: 23
+  input_channels: 3
+  input_mode: "grayscale_x3"
+  freeze_layers: ["conv1", "bn1", "layer1", "layer2"]
+  trainable_layers: ["layer3", "layer4", "fpn", "rpn", "head"]
+  score_thresh: 0.005
+  nms_thresh: 0.3
+  attention: null
+
+training:
+  optimizer: "adamw"
+  lr: 1.0e-4
+  weight_decay: 1.0e-5
+  epochs: 50
+  batch_size: 4
+  num_workers: 4
+  pin_memory: true
+  patience: 15
+  min_delta: 0.001
+  checkpoint_by: "map50"
+  eval_every: 5
+  swa:
+    enabled: true
+    start_epoch: 40
+    lr: 1.0e-5
+    anneal_epochs: 5
+  gradient_clip: 3.0
+  weighted_sampler: true
+  mixed_precision: true
+  seed: 42
+  augmentation:
+    online: true
+    horizontal_flip: 0.5
+    vertical_flip: 0.0
+    brightness_contrast: [0.2, 0.2, 0.5]
+    affine:
+      translate: 0.05
+      scale: [0.9, 1.1]
+      rotate: [-5, 5]
+      p: 0.3
+    blur: [3, 0.1]
+    cutout: [0.05, 0.2]
+    mosaic: 0.0
+    mixup: 0.0
+    hsv_h: 0.0
+    hsv_s: 0.0
+    hsv_v: 0.0
+
+evaluation:
+  iou_thresh: 0.5
+  score_thresh: 0.005
+  metrics:
+    - "map"
+    - "map50"
+    - "ap_per_class"
+    - "confusion_matrix"
+
+output:
+  checkpoint_dir: "checkpoints"
+  results_dir: "results"
+  save_best_by: "map50"
+  save_every_epoch: false
+  visualize_detections: 20

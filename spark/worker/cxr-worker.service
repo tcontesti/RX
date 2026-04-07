@@ -1,0 +1,15 @@
+[Unit]
+Description=CXR Inference Worker (GPU)
+After=network.target
+
+[Service]
+Type=simple
+User=husll-spark-01
+WorkingDirectory=/home/husll-spark-01/nodule_detection/worker
+ExecStart=/home/husll-spark-01/nodule_detection/worker/start_worker.sh
+Restart=always
+RestartSec=10
+Environment=PYTHONPATH=/home/husll-spark-01/nodule_detection
+
+[Install]
+WantedBy=multi-user.target

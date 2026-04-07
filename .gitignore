@@ -1,0 +1,101 @@
+# ============================================================
+# CXR Nodule Detection — repo público
+# ============================================================
+
+# Claude / asistentes de IA (contexto local privado)
+.claude/
+CLAUDE.md
+claude_code_context_prompt.md
+.aider*
+.cursor/
+.codeium/
+
+# Secretos y entornos
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.crt
+id_rsa
+id_rsa.*
+id_ed25519
+id_ed25519.*
+known_hosts
+*.ppk
+secrets/
+credentials.json
+service-account*.json
+
+# PDFs regenerables (preservamos sólo la memoria académica oficial)
+*.pdf
+!tfg/MemoriaTFG.pdf
+
+# LaTeX auxiliares
+*.aux
+*.log
+*.out
+*.toc
+*.bbl
+*.blg
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.lof
+*.lot
+*.nav
+*.snm
+*.vrb
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/
+env/
+.python-version
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+
+# Node
+node_modules/
+dist/
+.pnpm-debug.log
+npm-debug.log
+
+# Modelos y datasets (binarios pesados)
+*.h5
+*.hdf5
+*.pth
+*.pt
+*.onnx
+*.ckpt
+*.nii
+*.nii.gz
+*.mha
+*.dcm
+checkpoints/
+
+# Datasets locales y carpetas pesadas del TFG
+original-project/dataset_node21/
+original-project/ENTREGA/
+original-project/node21-submit-master/
+TRABAJO_FINAL/
+node21-submit/
+images_test/
+
+# IDE / editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini

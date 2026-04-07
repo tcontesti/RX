@@ -1,0 +1,176 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[catalan]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\geometry{margin=2.5cm}
+
+\title{\textbf{README — Documentació de la Pràctica Final}}
+\author{Mark Link Cladera \and Antonio Contestí Coll}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section{Introducció}
+
+Aquest document descriu de manera estructurada el contingut de la entrega de la
+\textbf{Pràctica Final}, incloent la memòria escrita, el material audiovisual,
+el pòster, els articles científics consultats i els scripts utilitzats per al
+desenvolupament, entrenament i avaluació dels models de classificació i detecció
+de nòduls pulmonars sobre el conjunt de dades \textit{NODE21}.
+
+L’objectiu d’aquest \texttt{README} és facilitar la comprensió de l’organització
+del material entregat i permetre la correcta localització de cada recurs.
+
+\section{Documentació principal}
+
+A la carpeta arrel de la entrega es troben els següents documents principals:
+
+\begin{itemize}[leftmargin=1.5cm]
+    \item \textbf{\texttt{AA\_Practica\_Final\_Link\_Contesti.pdf}}  
+    Memòria explicativa del treball, on es descriuen els objectius, la metodologia,
+    els models utilitzats, els experiments realitzats, els resultats obtinguts i
+    les conclusions finals.
+
+    \item \textbf{\texttt{AA\_Practica\_Final\_Link\_Contesti.mp4}}  
+    Vídeo explicatiu generat a partir del \textit{notebook} \texttt{lm\_notebook},
+    en el qual es presenta de forma resumida l’enfocament del treball, els models
+    desenvolupats i els resultats més rellevants.
+
+    \item \textbf{\texttt{Poster\_Practica\_Final\_Link\_Contesti.pdf}}  
+    Pòster acadèmic que sintetitza visualment el contingut del treball, incloent
+    el plantejament del problema, la metodologia emprada i els principals resultats.
+\end{itemize}
+
+\section{Articles científics consultats}
+
+\subsection{\texttt{PAPERS\_CONSULTATS}}
+
+Aquesta carpeta conté tots els articles científics i treballs de recerca
+consultats durant el desenvolupament del projecte.  
+Tots els documents inclosos en aquesta carpeta apareixen citats com a referències
+a la memòria principal (\texttt{AA\_Practica\_Final\_Link\_Contesti.pdf}).
+
+La seva inclusió permet:
+\begin{itemize}
+    \item Verificar l’estat de l’art utilitzat.
+    \item Consultar les fonts originals dels mètodes i arquitectures emprades.
+    \item Garantir la traçabilitat acadèmica del treball.
+\end{itemize}
+
+\section{Scripts, models i avaluacions}
+
+\subsection{\texttt{SCRIPTS\_MODELS\_I\_AVALUACIONS\_MODELS}}
+
+Aquesta carpeta conté tot el material tècnic utilitzat per al desenvolupament del
+treball, organitzat en dos grans blocs: \textbf{classificació} i \textbf{detecció}.
+
+\subsection{Classificació}
+
+La carpeta de classificació inclou els \textit{notebooks} utilitzats per al
+preprocessament de dades, l’entrenament dels models i els estudis d’ablació:
+
+\begin{itemize}[leftmargin=1.5cm]
+    \item \texttt{conversion\_a\_png.ipynb}
+    \item \texttt{node21\_v1\_cs.ipynb}
+    \item \texttt{node21\_v1.1\_cs.ipynb}
+    \item \texttt{node21\_v1.2\_cs.ipynb}
+    \item \texttt{node21\_v1.2ablacio\_cs.ipynb}
+\end{itemize}
+
+Així mateix, existeix una subcarpeta \texttt{models} que conté els models
+entrenats. Degut a la seva mida, aquests models no s’inclouen directament a la
+entrega, sinó que es proporciona un enllaç a Google Drive.
+
+Els models finals són:
+\begin{itemize}
+    \item \texttt{efficientnet\_b0\_multicanal.pth}
+    \item \texttt{efficientnet\_b0\_multicanal\_Unsharp\_bo.pth}
+\end{itemize}
+
+\subsection{Detecció}
+
+La carpeta de detecció està estructurada en diversos subdirectoris:
+
+\subsubsection{\texttt{IPYNB}}
+
+Conté els \textit{notebooks} d’entrenament dels diferents models de detecció:
+
+\begin{itemize}
+    \item \texttt{node21\_v2.2\_frcnn\_coco.ipynb}
+    \item \texttt{node21\_v2.2\_png\_retinanet.ipynb}
+    \item \texttt{node21\_v2.3\_frcnn\_vindn\_png.ipynb}
+    \item \texttt{node21\_v2.3\_frcnn\_vindn\_attention\_roi.ipynb}
+    \item \texttt{node21\_v2.3\_frcnn\_vindn\_png\_attention\_cbam.ipynb}
+    \item \texttt{node21\_v2.3\_frcnn\_vindn\_png\_local\_foss.ipynb}
+    \item \texttt{yolo\_v1.ipynb}
+\end{itemize}
+
+\subsubsection{\texttt{MODELS}}
+
+Inclou els models de detecció entrenats:
+
+\begin{itemize}
+    \item \texttt{checkpoint\_coco\_monocanal\_desbalanceado\_epoch\_02\_20251229\_173827.pth}
+    \item \texttt{checkpoint\_epoch\_13\_vidn\_local\_foss\_20251231\_152453.pth}
+    \item \texttt{checkpoint\_3canal\_frcnn\_vindn\_epoch\_11\_20251231\_003142.pth}
+    \item \texttt{checkpoint\_canal\_frcnn\_vindn\_attention\_cbam\_epoch\_16\_20260101\_104415.pth}
+    \item \texttt{checkpoint\_retinanet\_epoch\_04\_20260102\_110739.pth}
+\end{itemize}
+
+\subsubsection{\texttt{AVALUACIO\_IPYNB}}
+
+\textit{Notebooks} d’avaluació que generen mètriques comparatives en format CSV:
+
+\begin{itemize}
+    \item \texttt{evaluate\_node21\_all\_v2.ipynb}
+    \item \texttt{evaluate\_node21\_all\_v2yolo.ipynb}
+    \item \texttt{evaluate\_node21\_all\_v2retina.ipynb}
+    \item \texttt{evaluate\_node21\_all\_vlocal\_foss.ipynb}
+\end{itemize}
+
+\subsubsection{\texttt{AVALUACIO\_CSVS}}
+
+Resultats finals de les avaluacions dels models:
+
+\begin{itemize}
+    \item \texttt{model\_comparison\_coco.csv}
+    \item \texttt{model\_comparison\_retinanet.csv}
+    \item \texttt{model\_comparison\_v2.csv}
+    \item \texttt{model\_comparison\_v2b.csv}
+    \item \texttt{model\_comparison\_vindn.csv}
+    \item \texttt{model\_comparison\_vindn\_attention\_cbam.csv}
+    \item \texttt{model\_comparison\_vindn\_local\_foss.csv}
+\end{itemize}
+
+\section{Observacions finals}
+
+L’estructura de la entrega ha estat dissenyada per garantir la reproductibilitat
+del treball, la traçabilitat dels resultats i la claredat en l’organització del
+material.  
+Els models finals i els resultats presentats a la memòria corresponen directament
+als scripts i avaluacions inclosos a les carpetes descrites en aquest document.
+
+\section{Accés en línia al material}
+
+Tot el material corresponent a aquesta Pràctica Final —incloent la memòria,
+el vídeo explicatiu, el pòster, els articles científics consultats, els scripts,
+els models entrenats i els resultats d’avaluació— es troba disponible de manera
+centralitzada i accessible en línia mitjançant Google Drive.
+
+L’enllaç d’accés és el següent:
+
+\begin{center}
+\url{https://drive.google.com/drive/folders/1WJeXDtzi0Cx8hRW65Q4TMMt1ho45nHI9}
+\end{center}
+
+Aquest repositori permet consultar i descarregar tots els recursos associats
+al treball, garantint la traçabilitat, la transparència i la reproductibilitat
+dels experiments realitzats.
+
+
+\end{document}
+

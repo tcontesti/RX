@@ -1,0 +1,7 @@
+checkpoint_epoch_11_20251220_133036.pth->vindr 3 canales
+20251220_133036->vindr 3 canales
+20251224_043211->vindr 3 canales
+
+tamano_nodulo_vs_posicion.png
+distribucion_tamao_nodulo.png
+distribucion_nodulos.png

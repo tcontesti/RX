@@ -1,0 +1,63 @@
+Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)
+
+Copyright (c) 2026 Antonio Contestí Coll, Marc Link Cladera
+Universitat de les Illes Balears (UIB) — Escola Politècnica Superior
+Hospital Universitari Son Llàtzer — Servei de Radiologia
+
+This work is licensed under the Creative Commons
+Attribution-NonCommercial 4.0 International License.
+
+You are free to:
+
+  Share — copy and redistribute the material in any medium or format.
+  Adapt — remix, transform, and build upon the material.
+
+Under the following terms:
+
+  Attribution — You must give appropriate credit, provide a link to the
+  license, and indicate if changes were made. You may do so in any
+  reasonable manner, but not in any way that suggests the licensor
+  endorses you or your use.
+
+  NonCommercial — You may not use the material for commercial purposes.
+
+  No additional restrictions — You may not apply legal terms or
+  technological measures that legally restrict others from doing anything
+  the license permits.
+
+To view a full copy of this license, visit:
+https://creativecommons.org/licenses/by-nc/4.0/
+
+──────────────────────────────────────────────────────────────────────
+
+Scope of this license:
+
+  - The thesis document (LaTeX source in tfg/source/ and compiled PDF
+    tfg/MemoriaTFG.pdf) is licensed under CC BY-NC 4.0.
+  - The source code (spark/ worker, scripts and pipeline; the backend
+    and frontend hosted in separate repositories) is licensed under
+    CC BY-NC 4.0 for academic and non-commercial use.
+  - The figures and metric reports (reports/, tfg/source/*.png) that
+    contain no identifiable patient information are licensed under
+    CC BY-NC 4.0.
+  - The original undergraduate material in original-project/ (Memoria
+    v1, scripts and poster by Marc Link Cladera and Antonio Contestí
+    Coll, supervised by Dr. Miquel Miró Nicolau, UIB) is licensed under
+    CC BY-NC 4.0.
+  - Third-party material (datasets NODE21, VinDr-CXR, ChestX-ray14,
+    JSRT, PadChest, Open-I, TBX11K; reference implementations such as
+    the Behrendt et al. NODE21 submission; pre-trained weights from
+    torchvision and Ultralytics) retains its original license. This
+    work only references and evaluates such material; it does not
+    redistribute it.
+
+──────────────────────────────────────────────────────────────────────
+
+Citation:
+
+  Link Cladera, M., & Contestí Coll, A. (2026). Detección automática
+  de nódulos pulmonares en radiografías de tórax mediante deep
+  learning. Bachelor's Thesis, Escola Politècnica Superior,
+  Universitat de les Illes Balears, Palma de Mallorca, Spain.
+  Supervisor: Dr. Miquel Miró Nicolau. Extended in collaboration with
+  Dr. Ana Estremera Bauzá (Hospital Universitari Son Llàtzer).

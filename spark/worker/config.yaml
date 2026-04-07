@@ -1,0 +1,41 @@
+# Configuración del Inference Worker
+# Ajustar según entorno (desarrollo vs producción)
+
+rabbitmq:
+  host: "RABBITMQ_HOST_IP"     # IP del servidor Docker con RabbitMQ (CAMBIAR)
+  port: 5672
+  user: "cxr_worker"
+  password: "CHANGE_ME_RABBITMQ_PASS"  # CAMBIAR en producción
+  queue_input: "cxr.inference"
+  queue_output: "cxr.results"
+  prefetch_count: 1            # 1 tarea a la vez (GPU)
+  heartbeat: 600               # 10 min (inferencia puede tardar)
+  blocked_connection_timeout: 300
+
+models:
+  frcnn:
+    enabled: true
+    weights: "/home/husll-spark-01/nodule_detection/checkpoints/frcnn_corrected/best_node21.pth"
+    score_thresh: 0.005
+    nms_thresh: 0.2
+  yolov8:
+    enabled: true
+    weights: "/home/husll-spark-01/nodule_detection/checkpoints/yolo/yolov8s/best.pt"
+    conf_thresh: 0.001
+    imgsz: 1024
+
+ensemble:
+  enabled: true
+  weights: [0.90, 0.91]       # FRCNN, YOLOv8 (proporcional a NODE21 score)
+  iou_thr: 0.2
+  skip_box_thr: 0.05
+
+inference:
+  device: "cuda:0"
+  input_size: 1024
+  output_confidence_thresh: 0.3  # Threshold para resultados finales
+  save_annotated_image: true
+
+logging:
+  level: "INFO"
+  file: "/home/husll-spark-01/nodule_detection/worker/worker.log"

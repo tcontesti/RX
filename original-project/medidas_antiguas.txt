@@ -1,0 +1,145 @@
+
+% ==============================
+% # Mètriques d'avaluació
+% ==============================
+\section{Mètriques d’avaluació per a la detecció d’objectes}
+
+Un cop entrenats els diferents models de detecció, és necessari disposar de mètriques
+quantitatives que permetin avaluar de manera objectiva el seu rendiment i comparar
+les diverses configuracions explorades. A diferència de les tasques de classificació,
+on la predicció consisteix únicament a assignar una etiqueta a una imatge, la detecció
+d’objectes requereix tant la correcta identificació de les regions d’interès com la seva
+localització espacial precisa.
+
+Per aquest motiu, l’avaluació dels models de detecció es basa en mètriques que tenen
+en compte el grau de solapament entre les caixes delimitadores predites pel model i
+les anotacions de referència (\textit{ground truth}). En aquest treball s’han utilitzat
+dues de les mètriques més establertes en la literatura: la intersecció sobre unió
+(\textit{Intersection over Union}, IoU) i la precisió mitjana
+(\textit{mean Average Precision}, mAP).
+
+La mètrica IoU mesura el grau de solapament espacial entre una caixa predita i la seva
+anotació de referència, definint-se com el quocient entre l’àrea de la intersecció i
+l’àrea de la unió d’ambdues caixes. El seu valor està comprès entre 0 i 1, on valors
+propers a 1 indiquen una alineació gairebé perfecta. En el context de la detecció
+mèdica, la IoU permet avaluar la precisió geomètrica de les deteccions i verificar si
+el model localitza correctament la regió anatòmica d’interès.
+
+Tanmateix, la IoU per si sola no és suficient per caracteritzar el rendiment global
+d’un model, ja que no penalitza explícitament la presència de falsos positius ni
+avalua la capacitat del sistema per detectar totes les lesions presents. Per aquest
+motiu, s’utilitza la mètrica mAP, que combina informació de precisió i exhaustivitat
+(\textit{precision} i \textit{recall}) al llarg de diferents llindars de decisió.
+
+La mAP es calcula a partir de la corba precisió--exhaustivitat obtinguda en variar el
+llindar de confiança de les deteccions, i representa l’àrea sota aquesta corba. En la
+pràctica, és habitual reportar la mAP per a un llindar fix de IoU, com ara
+IoU $\geq 0.5$, obtenint així la mètrica mAP@0.5. Aquesta mesura proporciona una
+avaluació global del rendiment del detector, integrant informació sobre localització,
+classificació i control de falsos positius.
+
+L’ús combinat de les mètriques IoU i mAP permet, per tant, analitzar de manera
+complementària la qualitat geomètrica de les deteccions i el comportament global del
+sistema, constituint la base per a la comparació rigorosa entre els models basats en
+pesos COCO, VinDr-CXR i les seves extensions multicanal.
+
+% ==========================================
+% 16.4 Resultats quantitatius i anàlisi
+% ==========================================
+\subsection{Resultats quantitatius i anàlisi dels models de detecció}
+
+En aquesta secció es presenten i s’analitzen els resultats obtinguts pels diferents
+models de detecció entrenats, utilitzant les mètriques d’Intersection over Union (IoU)
+mitjana i \textit{mean Average Precision} a un llindar de IoU = 0.5 (mAP@0.5).
+Abans d’interpretar els valors obtinguts, és necessari contextualitzar-los dins de
+l’estat de l’art (\textit{state of the art}, SOTA) en detecció d’objectes aplicada a
+imatge mèdica.
+
+En els darrers anys, nombrosos treballs han abordat la detecció de lesions en imatge
+mèdica mitjançant arquitectures de detecció profunda com Faster R-CNN, RetinaNet
+o variants basades en YOLO. Tot i això, a diferència de la detecció en imatges
+naturals, el rendiment assolit en imatge mèdica és substancialment inferior,
+especialment quan es tracta de lesions petites, poc contrastades i amb elevada
+variabilitat morfològica, com és el cas dels nòduls pulmonars en radiografies de tòrax.
+
+En aquest context, els valors reportats com a SOTA en conjunts de dades clínics
+reals acostumen a situar-se en rangs moderats. En particular, per a tasques de
+detecció de nòduls pulmonars en radiografies, la literatura reporta habitualment
+valors de IoU mitjana entre aproximadament 0.4 i 0.6, així com valors de mAP@0.5
+compresos, en molts casos, entre 0.35 i 0.55. Aquests rangs reflecteixen la dificultat
+inherent de la tasca i la incertesa associada tant a la qualitat de les imatges com a
+les anotacions de referència.
+
+Factors com la superposició d’estructures anatòmiques, la baixa relació
+senyal--soroll, les diferències interobservador en les anotacions i la presència de
+nòduls de mida molt reduïda limiten el rendiment assolible, fins i tot per models
+profunds entrenats amb grans volums de dades. Per aquest motiu, valors que en
+altres dominis podrien considerar-se modestos són, en el context de la imatge
+mèdica, indicatius d’un rendiment competitiu i clínicament rellevant.
+
+Amb aquesta contextualització, els resultats obtinguts en aquest treball poden
+interpretar-se de manera adequada i comparar-se amb criteri amb els valors
+reportats en la literatura existent, evitant comparacions directes amb benchmarks
+de visió per computador generalista que no reflecteixen les particularitats del
+domini mèdic.
+
+% ==========================================
+% 16.5 Resultats quantitatius obtinguts
+% ==========================================
+\subsection{Resultats quantitatius obtinguts}
+
+La Taula~\ref{tab:det_results} resumeix els resultats obtinguts pels diferents models
+de detecció avaluats en aquest treball, utilitzant les mètriques de IoU mitjana i
+mAP@0.5. Aquesta taula permet una comparació directa i homogènia entre les
+diferents estratègies de preentrenament i representació de l’entrada.
+
+\begin{table}[t]
+\caption{Resultats quantitatius dels models de detecció avaluats}
+\label{tab:det_results}
+\centering
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabularx}{\columnwidth}{lcc}
+\toprule
+\textbf{Model} & \textbf{Mean IoU} & \textbf{mAP@0.5} \\
+\midrule
+FR-CNN (COCO, monocanal)       & 0.544 & 0.471 \\
+FR-CNN (VinDr-CXR, monocanal) & 0.521 & 0.444 \\
+FR-CNN (COCO, multicanal)     & 0.557 & 0.467 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Tal com es pot observar a la Taula~\ref{tab:det_results}, els tres models avaluats
+presenten un rendiment coherent amb els valors habituals reportats en l’estat de
+l’art per a la detecció de nòduls pulmonars en radiografies de tòrax.
+
+El model base Faster R-CNN preentrenat en COCO obté una IoU mitjana de 0.544 i
+una mAP@0.5 de 0.471, indicant una bona capacitat de localització espacial malgrat
+haver estat preentrenat en un domini no mèdic. Aquest resultat confirma la
+robustesa del preentrenament generalista quan es combina amb un procés de
+\textit{fine-tuning} adequat.
+
+El model inicialitzat amb pesos VinDr-CXR presenta uns valors lleugerament
+inferiors tant en IoU com en mAP. Tot i que VinDr-CXR és un domini radiològic més
+proper, aquest resultat suggereix que la transferència directa de coneixement no
+garanteix necessàriament un millor rendiment, possiblement a causa de diferències
+en la definició de les anotacions, en la distribució de les troballes o en l’escala dels
+objectes d’interès.
+
+Pel que fa al model preentrenat en COCO amb representació multicanal, s’observa el
+valor més elevat de IoU mitjana (0.557), fet que indica una millora clara en la
+precisió geomètrica de les deteccions. Aquesta millora reforça la hipòtesi que la
+combinació de filtres de preprocessament com CLAHE i \textit{unsharp masking}
+aporta informació complementària útil per a la localització espacial dels nòduls.
+La mAP@0.5 es manté en un valor similar al del model monocanal, suggerint que la
+millora principal es produeix en la qualitat de la localització més que en el nombre
+total de deteccions correctes.
+
+En conjunt, \textbf{tots els models avaluats assoleixen valors dins dels rangs considerats
+competitius en l’estat de l’art} per a la detecció de nòduls pulmonars en radiografies
+de tòrax, confirmant la validesa del pipeline desenvolupat. Els resultats obtinguts
+justifiquen l’exploració de futures línies d’innovació orientades a explotar
+representacions enriquides de l’entrada, amb l’objectiu de millorar simultàniament
+la precisió espacial i el rendiment global del sistema de detecció.
+

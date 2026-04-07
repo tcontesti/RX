@@ -1,0 +1,108 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish]{babel}
+\usepackage{newtxtext,newtxmath}
+\usepackage[top=1.2cm, bottom=1.2cm, left=1.5cm, right=1.5cm]{geometry}
+\usepackage[final,expansion=false]{microtype}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{titlesec}
+\usepackage{hyperref}
+\usepackage{tabularx}
+
+\hypersetup{colorlinks=true, urlcolor=black, linkcolor=black}
+
+\definecolor{accent}{HTML}{8b3a2f}
+
+\titleformat{\section}{\normalfont\normalsize\bfseries\color{accent}}{}{0pt}{}
+\titlespacing*{\section}{0pt}{3pt}{1pt}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{2pt}
+\linespread{0.94}
+
+\pagestyle{empty}
+
+\begin{document}
+
+\begin{center}
+{\large\bfseries Detección automática de nódulos pulmonares en radiografías de tórax mediante \emph{deep learning}: del modelo al prototipo hospitalario}\\[2pt]
+{\small Premios Salut Innova UIB-HLL Son Espases · 4ª edición (2026)}
+\end{center}
+
+\vspace{-4pt}
+\hrule
+\vspace{3pt}
+
+\begin{tabularx}{\textwidth}{@{}lX@{}}
+\textbf{Categoría:} & Inteligencia artificial y datos masivos (\emph{big data}) \\
+\textbf{Proponentes:} & Antonio Contesti Coll (graduado, EPS-UIB) · Marc Link Cladera (coautor del proyecto base UIB) \\
+& Dr.~Miquel Miró Nicolau (profesor ayudante doctor, Dept. Ciencias Matemáticas e Informática, EPS-UIB) \\
+& Dra.~Ana Estremera Bauzá (jefa del Servicio de Radiología, Hospital Universitari Son Llàtzer, IB-Salut) \\
+\textbf{Origen:} & Trabajo de Fin de Grado EPS-UIB (Grado en Ingeniería Informática) y desarrollo posterior como prototipo hospitalario funcional. \\
+\end{tabularx}
+
+\vspace{1pt}
+
+\section*{1. Justificación clínica}
+
+El \textbf{cáncer de pulmón es la primera causa de mortalidad por cáncer a nivel mundial}, con supervivencia a cinco años inferior al 20\,\% en estadios avanzados frente al 60\,\% cuando se detecta de forma temprana. Los nódulos pulmonares son los indicadores precoces más relevantes, y la \emph{radiografía de tórax} (CXR) es el estudio de imagen más solicitado en atención primaria y urgencias. Sin embargo, su detección en CXR es notoriamente difícil: estudios clínicos reportan tasas de falsos negativos del 20--50\,\% por parte de radiólogos, ya que los nódulos pueden ser pequeños ($<$10\,mm), estar superpuestos con costillas y clavículas, o quedar camuflados en el parénquima. En el Hospital Universitari Son Llàtzer la presión asistencial sobre el Servicio de Radiología hace especialmente valioso disponer de una \textbf{segunda lectura algorítmica}. El sistema propuesto localiza nódulos en \textbf{menos de tres segundos} y permite al radiólogo validar, corregir y anotar los resultados, integrándose en su flujo de trabajo habitual.
+
+\section*{2. Innovación propuesta}
+
+El sistema cubre las dos tareas clínicas relevantes en CXR: \textbf{cribado por clasificación binaria} y \textbf{localización por detección de objetos}. La fase de clasificación introduce una representación \textbf{multicanal de cuatro canales} (imagen original + CLAHE + Canny + \emph{Unsharp Mask}) sobre EfficientNet-B0, inspirada en el procesamiento perceptivo del radiólogo, que alcanza \emph{accuracy} del 98{,}07\,\% sobre el \emph{test set} de NODE21. La fase de detección integra dos detectores de arquitecturas fundamentalmente complementarias: \textbf{Faster R-CNN} (\emph{two-stage}, ResNet-50 + FPN, preentrenado en VinDr-CXR con 14 patologías radiológicas) y \textbf{YOLOv8s} (\emph{single-stage} \emph{anchor-free}, preentrenado en COCO), combinados mediante \textbf{Weighted Box Fusion} (WBF), técnica que fusiona las predicciones por media ponderada de coordenadas en lugar de eliminar cajas redundantes (NMS), produciendo localizaciones más precisas que cualquier modelo individual. El prototipo se ha desplegado como un sistema web hospitalario \emph{end-to-end} con \textbf{arquitectura desacoplada por cola de mensajes asíncrona} (RabbitMQ entre PC clínico y servidor GPU): \emph{frontend} Vue~3 trilingüe (catalán, castellano, inglés) con interfaz codiseñada con la Dra.~Estremera, \emph{drag\,\&\,drop} de PNG/JPG/DICOM/MHA, visor radiológico interactivo con zoom real al píxel, \emph{overlay} SVG dinámico coloreado por nivel de riesgo, y \emph{threshold slider} que filtra detecciones en tiempo real sin re-inferencia; \emph{backend} FastAPI asíncrono containerizado con Docker Compose (MySQL, RabbitMQ, Nginx); \emph{worker} de inferencia nativo sobre la GPU \textbf{NVIDIA Grace Hopper GB10} (aarch64) con servicio \emph{systemd}, \emph{backoff} exponencial y \emph{health check} real. Incluye un \textbf{módulo completo de validación radiológica}: el radiólogo marca resultados como correctos/parciales/incorrectos, dibuja \emph{bounding boxes} manuales sobre nódulos no detectados, marca falsos positivos con un \emph{click}, añade notas por lesión, y todo se exporta como \emph{dataset} etiquetado en CSV/JSON para reentrenamiento continuo, cerrando el ciclo de mejora con datos clínicamente validados en el propio hospital.
+
+\section*{3. Apoyo al estado del arte}
+
+El proyecto \textbf{toma como punto de partida el trabajo ganador del NODE21 Challenge} (Behrendt \emph{et al.}, 2023, \emph{Nature Scientific Reports}) ---con el que se ha mantenido contacto directo: el primer autor cedió desinteresadamente los pesos preentrenados en VinDr-CXR usados como inicialización del Faster R-CNN--- y avanza más allá con cuatro contribuciones metodológicas propias: (i)~una \textbf{auditoría sistemática del código del estado del arte} que reveló \textbf{26 \emph{bugs}}, ocho críticos (incompatibilidades con PyTorch~2.x, Lightning~2.x y Pandas~2.x) que hacen el código del ganador NODE21 inejecutable en \emph{stacks} actuales; solo se rescataron $\sim$20 líneas útiles. (ii)~La \textbf{cuantificación de \emph{data leakage}}: el \emph{split} del proyecto base no agrupaba las imágenes augmentadas por imagen origen, inflando el \emph{score} NODE21 en \textbf{+6{,}7 puntos}; la corrección con \texttt{StratifiedGroupKFold} produce el primer \emph{score} honesto del \emph{pipeline}. (iii)~Un \textbf{hallazgo metodológico de aplicabilidad general}: la modificación del \emph{score threshold} por defecto de Faster R-CNN (0{,}5 $\to$ 0{,}005) mejora el \emph{score} NODE21 en \textbf{+40 puntos}; este parámetro, no documentado en la literatura revisada, distorsiona silenciosamente los resultados publicados. (iv)~Un \textbf{\emph{ensemble} eficiente} de solo dos modelos heterogéneos (FRCNN + YOLOv8) combinados con WBF que supera el \emph{ensemble} de 21 modelos del estado del arte, reduciendo la latencia de $\sim$1{,}2\,s a 81\,ms.
+
+\section*{4. Contribución original: integridad científica y \emph{ensemble} eficiente}
+
+La aportación más original es la \textbf{combinación de auditoría metodológica rigurosa con un \emph{ensemble} de baja complejidad}, en un campo donde la práctica dominante es acumular decenas de modelos para arañar décimas. El análisis crítico del código del ganador NODE21, el descubrimiento del \emph{data leakage} y el hallazgo del \emph{score threshold} son contribuciones a la literatura sobre \emph{reproducibility crisis} en \emph{deep learning} médico. El proyecto demuestra que la \textbf{diversidad arquitectónica vence al escalado bruto}: dos modelos con \emph{pretrainings} complementarios (radiológico VinDr-CXR vs general COCO) cometen errores no correlacionados, y su fusión por WBF produce ganancias mayores donde más importa clínicamente: \textbf{+5{,}3 puntos} de sensibilidad a 0{,}25\,FP/imagen.
+
+\section*{5. Resultados clave}
+
+\renewcommand{\arraystretch}{1.1}
+\begin{tabularx}{\textwidth}{@{}lX@{}}
+\textbf{\emph{Ensemble} WBF (FRCNN + YOLOv8)} & \emph{Score} NODE21 \textbf{0{,}9391} · AUROC \textbf{0{,}9683} · Competition Metric \textbf{94{,}47\,\%} sobre \emph{fold}~0 (4\,882 radiografías). \\
+\textbf{Comparación con ganador NODE21} & Behrendt \emph{et al.} (2023): CM 83{,}90\,\% con 21 modelos. Nuestro sistema con solo 2 modelos: \textbf{+10\,pp en CM}. \\
+\textbf{Sensibilidad clínicamente útil} & \textbf{87{,}4\,\%} a 0{,}25\,FP/imagen (mejor individual: 82{,}1\,\%; ganancia +5{,}3\,pp). \\
+\textbf{Clasificación binaria (cribado)} & EfficientNet-B0 multicanal (4 canales: Original + CLAHE + Canny + \emph{Unsharp}): \emph{accuracy} \textbf{98{,}07\,\%}, \emph{recall} clase positiva \textbf{98{,}93\,\%}. Estudio de ablación: CLAHE es el componente determinante. \\
+\textbf{Reproducibilidad ARM64} & Primera replicación del proyecto base UIB sobre NVIDIA Grace Hopper; \emph{data leakage} cuantificado en +6{,}7~puntos NODE21. \\
+\textbf{Latencia} & Inferencia \textbf{81\,ms/imagen} · extremo a extremo \textbf{$<$3\,s} desde \emph{upload} hasta resultado. \\
+\textbf{Robustez} & 113 \emph{issues} identificados, 23~\emph{bugs} críticos corregidos, reconexión RabbitMQ con \emph{backoff} exponencial, \emph{health check} real. \\
+\end{tabularx}
+
+\section*{6. Impacto económico y social}
+
+\textbf{Para el paciente:} reducción del riesgo de falsos negativos en CXR (actualmente 20--50\,\%), aceleración del triaje en sospecha de cáncer de pulmón y \textbf{segunda lectura algorítmica} complementaria al criterio del radiólogo. \textbf{Para el sistema sanitario:} alivio de la presión asistencial sobre el Servicio de Radiología del Hospital Universitari Son Llàtzer, con latencia $<$3\,s compatible con el flujo radiológico estándar y preparado para integración PACS por DICOM C-STORE. \textbf{Para la comunidad de investigación:} la publicación abierta del protocolo de auditoría de \emph{data leakage}, del análisis crítico del código del estado del arte y del hallazgo del \emph{score threshold} cubren huecos identificados en la literatura sobre \emph{reproducibility} en IA médica. \textbf{Para la sociedad:} código y documentación publicados en GitHub bajo licencia abierta.
+
+\section*{7. Cooperación UIB · IB-Salut · línea internacional}
+
+\begin{itemize}[leftmargin=1.2em, itemsep=1pt, topsep=1pt]
+\item \textbf{UIB} (Escola Politècnica Superior) --- Dr.~Miquel Miró Nicolau, \emph{profesor ayudante doctor} del Departamento de Ciencias Matemáticas e Informática (línea de \emph{eXplainable AI}), aporta la dirección académica y metodológica. Marc Link Cladera (coautor del proyecto base UIB) contribuyó con los modelos iniciales. Antonio Contesti Coll lidera el desarrollo actual del prototipo hospitalario completo y la auditoría crítica del estado del arte.
+\item \textbf{IB-Salut, Hospital Universitari Son Llàtzer} --- Dra.~Ana Estremera Bauzá, jefa del Servicio de Radiología, aporta el conocimiento clínico, los requisitos funcionales del prototipo (interfaz, casos de uso, integración con PACS) y la perspectiva del impacto real en consulta; codiseño del módulo de validación que cierra el ciclo de mejora.
+\item \textbf{Línea internacional} --- comparación directa con el ganador del NODE21 Challenge (Behrendt \emph{et al.}, Hamburg University of Technology), referente mundial en detección de nódulos en CXR.
+\end{itemize}
+
+\section*{8. Madurez del proyecto}
+
+El sistema es un \textbf{prototipo totalmente funcional, listo para ser evaluado en directo por el comité de selección} sobre radiografías reales. Se dispone de memoria académica, código fuente completo, \emph{pipeline} reutilizable para nuevas patologías y documentación técnica (13 \emph{endpoints}, 6 tablas, 113 \emph{issues} auditados). \emph{Trabajo futuro:} integración PACS por DICOM C-STORE, autenticación Keycloak, HTTPS hospitalario, extensión multi-patología (TBX11K para tuberculosis, VinDr-CXR para 22 patologías) y publicación en \emph{Nature Scientific Reports} o \emph{Medical Image Analysis}.
+
+\vspace{2pt}
+\hrule
+\vspace{3pt}
+
+{\small
+\textbf{Material disponible para evaluación:}\\[1pt]
+\begin{tabular}{@{}ll@{}}
+Memoria académica del TFG (PDF) & \emph{adjunta a la candidatura} \\
+\emph{Backend} hospitalario (FastAPI + Docker) & \url{https://github.com/tcontesti/cxr-detection} \\
+\emph{Frontend} hospitalario (Vue 3 + Tailwind) & \url{https://github.com/tcontesti/cxr-frontend} \\
+Documentación técnica completa (\emph{wiki}) & \emph{adjunta a la candidatura} \\
+Demostración en vivo del prototipo & \emph{operativo en LAN Hospital Son Llàtzer} \\
+\end{tabular}}
+
+\end{document}

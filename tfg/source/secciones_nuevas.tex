@@ -1,0 +1,314 @@
+% =====================================================================
+% SECCIONS NOVES — Inserir ABANS de l'actual \section{Conclusions}
+% Eliminar la secció de conclusions original i la nota d'IA original
+% =====================================================================
+
+% ========================
+% CONTINUACIÓ DEL TREBALL
+% ========================
+\section{Fase de Desplegament: Reproducció, Validació i Millora dels Models}
+
+Un cop completada la fase experimental descrita en les seccions anteriors, el treball ha estat reprès amb l'objectiu de dur els models a un entorn de producció real. Aquesta fase ha comportat la reproducció completa dels experiments en un servidor GPU dedicat (NVIDIA Spark GB10 amb 130~GB de VRAM), la validació rigorosa dels resultats, i el descobriment de problemes metodològics que afecten significativament les mètriques reportades.
+
+El punt de partida ha estat el codi i els \textit{checkpoints} del treball original. S'ha clonat el repositori de Behrendt et al.~\cite{behrendt2023node21} (solució guanyadora del repte NODE21) per obtenir els pesos preentrenats de VinDr-CXR, i s'ha desplegat un entorn complet d'entrenament i avaluació en el servidor Spark, amb PyTorch 2.x, Ultralytics (YOLOv8 i YOLO26) i les mateixes eines d'avaluació FROC.
+
+\subsection{Reproducció dels models originals}
+
+El primer pas ha consistit en reproduir els millors resultats obtinguts en la fase anterior. S'han tornat a entrenar els dos millors models:
+
+\textbf{Faster R-CNN amb pesos VinDr-CXR.} El model original, entrenat en Google Colab amb el dataset augmentat (\texttt{metadata\_augmented\_def2.csv}, 8.175 files), havia obtingut un NODE21 score proper a 0.89. En la reproducció inicial en la Spark, amb el dataset original sense augmentar (4.882 imatges, 23\% positius), el NODE21 score va ser de només 0.4546. Aquesta discrepància va motivar una investigació detallada que va revelar dos problemes fonamentals: el \textit{score threshold} i el \textit{data leakage}, descrits en les seccions següents.
+
+\textbf{YOLOv8s.} L'entrenament de YOLOv8s en la Spark va produir resultats consistents amb els originals: NODE21 score de 0.9103, AUROC de 0.9686, amb una sensibilitat de 0.821 a 0.25 falsos positius per imatge. La configuració conservadora d'augmentació (sense \textit{mosaic}, sense \textit{mixup}, sense jittering de color) es confirma com adequada per a imatge mèdica en escala de grisos.
+
+\subsection{Avaluació dels \textit{checkpoints} originals}
+
+Per verificar que els \textit{checkpoints} originals produïen els mateixos resultats reportats, es van transferir al servidor Spark via SCP i es van avaluar amb el pipeline d'avaluació FROC implementat des de zero. Els resultats van ser:
+
+\begin{table}[H]
+\centering
+\caption{\textit{Checkpoints} originals avaluats en la Spark}
+\label{tab:originals}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Model} & \textbf{NODE21} & \textbf{AUROC} & \textbf{CM} & \textbf{S@0.25} \\
+\midrule
+FRCNN-3ch (original) & 0.9596 & 0.9904 & 0.9795 & 0.947 \\
+FRCNN-CBAM (original) & 0.9181 & 0.9586 & 0.9391 & 0.880 \\
+YOLOv8s (Spark) & 0.9136 & 0.9686 & 0.9316 & 0.821 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Els \textit{checkpoints} originals van produir scores molt elevats en el val set de la Spark, però la discrepància entre els 0.9596 del checkpoint carregat i els 0.4546 del model entrenat des de zero va suggerir que el problema no era l'arquitectura sinó el procés d'entrenament o avaluació.
+
+% ========================
+% DATA LEAKAGE
+% ========================
+\section{Descobriment i Correcció del \textit{Data Leakage}}
+
+\subsection{Identificació del problema}
+
+Després d'una anàlisi exhaustiva del codi i les dades originals, es van identificar dos problemes crítics:
+
+\textbf{1. Score threshold inadequat.} El \textit{score threshold} per defecte de Faster R-CNN en TorchVision és 0.5, el que significa que totes les prediccions amb confiança inferior al 50\% són descartades \textit{abans} de l'avaluació FROC. En un escenari on la majoria de nòduls tenen scores moderats (0.1--0.5), això elimina gran part de les deteccions verdaderes. En reduir el threshold a 0.005, el NODE21 score del model va millorar de 0.4546 a 0.8544 --- una diferència de gairebé 40 punts que il·lustra la importància d'aquest paràmetre, sovint ignorat en la literatura.
+
+\begin{table}[H]
+\centering
+\caption{Impacte del \textit{score threshold} en Faster R-CNN}
+\label{tab:threshold}
+\begin{tabular}{lcc}
+\toprule
+\textbf{Threshold} & \textbf{NODE21} & \textbf{Diferència} \\
+\midrule
+0.5 (defecte TorchVision) & 0.4546 & --- \\
+\textbf{0.005 (corregit)} & \textbf{0.8544} & \textbf{+40.0 punts} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{2. Data leakage per augmentació offline.} El dataset augmentat original contenia 8.175 files: 5.224 originals i 2.951 augmentades (amb sufixos \texttt{\_aug0}, \texttt{\_aug1}). Les augmentacions s'havien generat amb Albumentations aplicant transformacions geomètriques (flip horitzontal, rotació $\pm 10°$, escala 0.9--1.1, translació $\pm 5\%$) amb \texttt{BboxParams} per transformar les coordenades de les \textit{bounding boxes}.
+
+El \textit{split} train/test original utilitzava \texttt{train\_test\_split(random\_state=42)} sobre \textit{tots} els \texttt{file\_paths} incloent les imatges augmentades, \textit{sense agrupar per imatge base}. Això permetia que la imatge original \texttt{n0080.png} estigués en el conjunt d'entrenament i la seva augmentació \texttt{n0080\_aug0.png} en el de validació. Com que ambdues imatges són pràcticament idèntiques (mateixa anatomia, mateixos nòduls, lleugeres transformacions geomètriques), el model podia "memoritzar" patrons de l'entrenament i reconèixer-los en la validació, inflant artificialment les mètriques.
+
+\subsection{Quantificació de l'impacte}
+
+Per quantificar exactament l'impacte del \textit{data leakage}, es van entrenar dues versions del model Faster R-CNN amb idèntica configuració:
+
+\begin{itemize}
+    \item \textbf{Versió A (amb \textit{leakage})}: Rèplica exacta de l'entrenament original, amb \texttt{train\_test\_split} sense agrupació. Reprodueix el protocol original per verificar que el pipeline és correcte.
+    \item \textbf{Versió B (sense \textit{leakage})}: \textit{Split} corregit amb \texttt{StratifiedGroupKFold}, agrupant per nom base d'imatge de manera que totes les augmentacions d'una mateixa imatge queden en el mateix \textit{fold}.
+\end{itemize}
+
+\begin{table}[H]
+\centering
+\caption{Impacte del \textit{data leakage} en el NODE21 score}
+\label{tab:leakage}
+\begin{tabular}{lccc}
+\toprule
+\textbf{Versió} & \textbf{NODE21} & \textbf{AUROC} & \textbf{CM} \\
+\midrule
+Rèplica A (amb \textit{leakage}) & 0.9695 & 0.9936 & 0.9827 \\
+\textbf{Versió B (sense \textit{leakage})} & \textbf{0.9025} & \textbf{0.9460} & \textbf{0.9146} \\
+\midrule
+\textbf{Inflació per \textit{leakage}} & \textbf{+6.7 punts} & +4.8 punts & +6.8 punts \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+La Rèplica A va aconseguir fins i tot superar el checkpoint original (0.9695 vs 0.9596), confirmant que la reproducció és correcta. La Versió B, amb el \textit{split} corregit, obté un NODE21 de 0.9025 --- un resultat encara excel·lent però 6.7 punts inferior. \textbf{Tots els resultats reportats a partir d'aquest punt corresponen a la versió corregida sense \textit{data leakage}.}
+
+Aquesta troballa és rellevant per a la comunitat d'imatge mèdica, on l'augmentació offline amb transformacions geomètriques és una pràctica habitual per compensar datasets petits. Si les augmentacions no s'agrupen correctament en els \textit{splits}, els resultats reportats poden ser significativament optimistes.
+
+% ========================
+% YOLO26
+% ========================
+\section{YOLO26: Avaluació de l'Última Generació de Detectors}
+
+Amb l'objectiu de completar l'anàlisi amb les arquitectures més recents, s'ha incorporat YOLO26~\cite{yolo26}, l'última versió dels detectors d'Ultralytics, publicada el gener de 2026. Aquesta arquitectura introdueix millores teòricament rellevants per a la detecció d'objectes petits com els nòduls pulmonars:
+
+\begin{itemize}
+    \item \textbf{STAL} (\textit{Small-Target-Aware Label Assignment}): Assignació d'etiquetes conscient d'objectes petits, dissenyada per millorar la sensibilitat en objectes de baix contrast i mida reduïda.
+    \item \textbf{ProgLoss}: Balanç progressiu de les funcions de pèrdua que substitueix la DFL (\textit{Distribution Focal Loss}).
+    \item \textbf{MuSGD}: Optimitzador híbrid de SGD i Muon, que promet convergència més ràpida i estable.
+    \item \textbf{Disseny NMS-free}: Eliminació del postprocessament de supressió de no-màxims, simplificant el pipeline d'inferència.
+\end{itemize}
+
+El model YOLO26s s'ha entrenat amb la mateixa configuració que YOLOv8 (resolució 1024$\times$1024, augmentació conservadora sense \textit{mosaic} ni \textit{mixup}) però amb \texttt{patience=30} i fins a 150 èpoques. Els resultats obtinguts mostren un NODE21 score de 0.7929, significativament inferior al de YOLOv8s (0.9103).
+
+Aquesta diferència suggereix que: (i) els hiperparàmetres per defecte de YOLO26 no estan encara optimitzats per a imatge mèdica en escala de grisos; (ii) el benefici de STAL per a objectes petits pot requerir datasets més grans per manifestar-se (NODE21 té només 4.882 imatges); i (iii) l'arquitectura és tan nova que la comunitat encara no ha explorat les configuracions òptimes per a cada domini.
+
+% ========================
+% ENSEMBLE WBF
+% ========================
+\section{Ensemble WBF: Fusió de Models Complementaris}
+
+\subsection{Fonament teòric del Weighted Box Fusion}
+
+Un dels objectius principals d'aquest treball era avaluar si la combinació de detectors complementaris podia superar els models individuals. El mètode de \textit{Weighted Box Fusion} (WBF)~\cite{solovyev2021wbf} és una alternativa moderna a la supressió de no-màxims (NMS) per a la fusió de prediccions de múltiples models.
+
+A diferència de NMS, que \textit{elimina} les caixes solapades mantenint només la de major puntuació (i per tant descarta informació valuosa dels models restants), WBF \textit{fusiona} les caixes solapades calculant la mitjana ponderada de les seves coordenades, utilitzant els \textit{scores} de confiança com a pesos. Això produeix caixes amb posicions més precises que qualsevol dels models individuals, ja que incorpora la informació de tots els detectors.
+
+Formalment, donades $N$ caixes $b_1, \ldots, b_N$ amb scores $s_1, \ldots, s_N$ que se solapen (IoU $> \tau$), WBF calcula la caixa fusionada com:
+
+\begin{equation}
+    b_{\text{fused}} = \frac{\sum_{i=1}^{N} w_i \cdot s_i \cdot b_i}{\sum_{i=1}^{N} w_i \cdot s_i}
+\end{equation}
+
+on $w_i$ és el pes assignat al model $i$ (proporcional al seu rendiment individual).
+
+\subsection{Selecció de models i configuració}
+
+S'han seleccionat els dos millors models individuals per a l'ensemble, que presenten fortaleses complementàries:
+
+\begin{itemize}
+    \item \textbf{Faster R-CNN VinDr} (NODE21 = 0.9025): Excel·lent en règims de baixos falsos positius gràcies al preentrenament radiològic. La seva arquitectura de dues etapes (proposta de regions + classificació) permet una alta precisió en la localització.
+    \item \textbf{YOLOv8s} (NODE21 = 0.9103): Alta sensibilitat global i inferència molt ràpida. La seva arquitectura \textit{anchor-free} d'una sola etapa captura patrons que el detector de dues etapes pot perdre.
+\end{itemize}
+
+La configuració de WBF utilitzada és: pesos $w = [0.90, 0.91]$ (proporcionals al NODE21 individual), llindar IoU $\tau = 0.2$ (coherent amb el protocol NODE21), i \texttt{skip\_box\_thr} $= 0.05$ per filtrar prediccions de molt baixa confiança abans de la fusió.
+
+\subsection{Resultats de l'ensemble}
+
+\begin{table}[H]
+\centering
+\caption{Resultats del Ensemble WBF comparats amb models individuals}
+\label{tab:ensemble}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Model} & \textbf{NODE21} & \textbf{AUROC} & \textbf{CM} & \textbf{S@0.25FP} \\
+\midrule
+\textbf{Ensemble WBF} & \textbf{0.9391} & \textbf{0.9683} & \textbf{0.9447} & \textbf{0.874} \\
+YOLOv8s & 0.9103 & 0.9686 & 0.9283 & 0.821 \\
+FRCNN VinDr & 0.9025 & 0.9460 & 0.9146 & 0.821 \\
+YOLO26s & 0.7929 & 0.9557 & 0.8754 & 0.635 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Sensibilitat detallada per nivell de falsos positius per imatge}
+\label{tab:sensitivity}
+\begin{tabular}{lcccccc}
+\toprule
+\textbf{Model} & \textbf{@0.25} & \textbf{@0.5} & \textbf{@1} & \textbf{@2} & \textbf{@4} & \textbf{@8} \\
+\midrule
+Ensemble WBF & \textbf{0.874} & \textbf{0.914} & \textbf{0.944} & \textbf{0.960} & \textbf{0.970} & \textbf{0.973} \\
+YOLOv8s & 0.821 & 0.870 & 0.924 & 0.953 & 0.957 & 0.957 \\
+FRCNN VinDr & 0.821 & 0.854 & 0.890 & 0.930 & 0.947 & 0.973 \\
+YOLO26s & 0.635 & 0.751 & 0.791 & 0.834 & 0.860 & 0.887 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+L'ensemble WBF supera el millor model individual en +2.6 punts NODE21 i, el que és més rellevant clínicament, en +5.3 punts de sensibilitat a 0.25 FP/imatge (de 0.821 a 0.874). En un escenari de cribratge, on cada fals negatiu pot representar un càncer no diagnosticat, aquesta millora és significativa.
+
+La \textit{Competition Metric} (CM = 0.75 $\times$ AUROC + 0.25 $\times$ NODE21) resultant és de \textbf{94.47\%}, que supera el 83.90\% reportat per Behrendt et al.~\cite{behrendt2023node21} amb el seu ensemble de 21 models. Cal notar que els conjunts de test són diferents (el nostre és un \textit{split} intern de NODE21, no el test oficial del repte), per la qual cosa la comparació és indicativa. No obstant això, els resultats demostren que un ensemble de 2 models ben seleccionats, amb preentrenament radiològic i fusió WBF, pot superar ensembles molt més complexos.
+
+\subsection{Anàlisi del codi de referència}
+
+Paral·lelament, s'ha dut a terme una revisió exhaustiva del codi del repositori de Behrendt (\texttt{node21-submit}), identificant un total de 26 \textit{bugs}: 8 crítics (incompatibles amb PyTorch 2.x, Lightning 2.x i Pandas 2.x, incloent \texttt{training\_epoch\_end()} eliminat, \texttt{DataFrame.append()} eliminat, i \textit{monkey-patching} de funcions internes de TorchVision amb un bug lògic en la línia 21 del fitxer \texttt{FasterCNN.py}), 5 d'alta severitat i 13 de severitat mitjana-baixa. S'ha conclòs que no és viable portar el codi complet a versions modernes, i s'han extret únicament els components conceptualment útils ($\sim$20 línies de codi): la lògica de càrrega de pesos VinDr amb mapatge seqüencial de \textit{keys}, i les idees de SWA i \texttt{WeightedRandomSampler}.
+
+\subsection{Rendiment d'inferència}
+
+El temps d'inferència mesurat en el servidor Spark (GPU NVIDIA GB10) és:
+
+\begin{table}[H]
+\centering
+\caption{Temps d'inferència per imatge}
+\label{tab:inference}
+\begin{tabular}{lc}
+\toprule
+\textbf{Component} & \textbf{Temps} \\
+\midrule
+Faster R-CNN VinDr & $\sim$55 ms \\
+YOLOv8s & $\sim$25 ms \\
+WBF Ensemble & $\sim$1 ms \\
+Decodificació + preprocés & $\sim$20 ms \\
+\midrule
+\textbf{Total per imatge} & \textbf{$\sim$81 ms} \\
+\textbf{Latència \textit{end-to-end}} & \textbf{$\sim$2--3 s} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+La latència \textit{end-to-end} inclou la transmissió de la imatge en base64 via RabbitMQ, la decodificació, el preprocés, la inferència dels dos models, la fusió WBF i la publicació del resultat. Un temps total de 2--3 segons és plenament compatible amb un flux de treball clínic en temps real.
+
+% ========================
+% HERRAMIENTA HOSPITALARIA
+% ========================
+\section{Prototip d'Eina Hospitalària}
+
+El treball original concloïa plantejant com a treball futur la validació prospectiva del sistema en un entorn hospitalari real. En aquesta fase, s'ha dissenyat, implementat i desplegat un prototip funcional \textit{end-to-end} que materialitza aquest objectiu.
+
+\subsection{Arquitectura del sistema}
+
+L'arquitectura segueix un patró de desacoblament mitjançant cua de missatges (RabbitMQ), separant el frontend web, el backend amb base de dades i el worker d'inferència GPU:
+
+\begin{itemize}
+    \item \textbf{Frontend}: Aplicació Vue 3 + Tailwind CSS amb visor interactiu de radiografies (zoom, \textit{pan}), \textit{overlay} SVG de deteccions amb codificació de color per confiança, \textit{slider} de llindar en temps real, historial amb cerca i paginació, i selector d'idioma (català/castellà). Suporta mode clar i fosc.
+    \item \textbf{Backend}: FastAPI amb Docker Compose (MySQL 8.0, RabbitMQ 3.13, Nginx 1.25). API REST amb 13 \textit{endpoints} per a \textit{upload}, resultats, historial, validació, estadístiques i exportació de dades.
+    \item \textbf{Worker GPU}: Procés Python natiu en el servidor Spark (sense Docker, per màxim rendiment GPU). Carrega els models una sola vegada a l'inici ($\sim$2 s) i processa cada imatge en $\sim$81 ms. Inclou reconnexió automàtica a RabbitMQ amb \textit{exponential backoff}, rotació de \textit{logs} i neteja de memòria GPU després de cada tasca.
+\end{itemize}
+
+El flux complet és: el radiòleg arrossega una CXR al navegador $\rightarrow$ el backend genera un identificador únic, guarda la imatge original a MySQL i envia la tasca a RabbitMQ $\rightarrow$ el worker GPU consumeix la tasca, executa l'ensemble FRCNN + YOLOv8 + WBF en $\sim$81 ms i publica el resultat $\rightarrow$ un consumidor actualitza MySQL amb les deteccions $\rightarrow$ el frontend mostra les deteccions amb \textit{overlay} SVG sobre la imatge original en $\sim$2--3 segons.
+
+\subsection{Mòdul de validació prospectiva}
+
+L'element diferenciador d'aquesta eina respecte a altres sistemes de detecció és el mòdul de validació prospectiva, dissenyat per facilitar estudis clínics i la millora contínua dels models:
+
+\begin{enumerate}
+    \item El radiòleg visualitza el resultat de la IA amb les deteccions sobre la imatge.
+    \item Marca el resultat com a \textbf{Correcte}, \textbf{Parcial} o \textbf{Incorrecte}.
+    \item Si el resultat és parcial o incorrecte, el visor entra en \textbf{mode d'edició}: el zoom i \textit{pan} es desactiven, el cursor canvia a \textit{crosshair}, i el radiòleg pot dibuixar \textit{bounding boxes} manualment sobre la imatge gran (nòduls no detectats per la IA, mostrats en verd) i marcar deteccions de la IA com a falsos positius (clic sobre la caixa, que es mostra en gris ratllat).
+    \item Per a cada anotació manual, pot afegir notes específiques (per exemple, ``nòdul en lòbul inferior dret, parcialment ocult per la silueta cardíaca'').
+    \item La validació es guarda amb el nom del radiòleg, les notes generals i la data/hora, i queda \textit{bloquejada} per evitar modificacions accidentals (amb opció d'\textit{Editar} per desbloquejar).
+    \item Totes les validacions es poden exportar en format CSV o JSON, incloent tant les deteccions de la IA com les correccions manuals dels radiòlegs. Aquest dataset validat constitueix un \textit{ground truth} per al reentrenament dels models.
+\end{enumerate}
+
+\subsection{Preparació per a producció}
+
+S'ha realitzat una revisió exhaustiva del codi identificant 113 \textit{issues} en els tres components (37 backend, 34 frontend, 42 worker), dels quals 11 crítics han estat corregits: reconnexió automàtica de RabbitMQ, neteja de memòria GPU amb \texttt{torch.cuda.empty\_cache()} després de cada inferència, rotació de \textit{logs} (10 MB $\times$ 5 fitxers), \textit{pool} de connexions MySQL amb \texttt{pool\_pre\_ping} i \texttt{pool\_recycle}, \textit{graceful shutdown} amb \textit{flag} de control, gestió de memòria del frontend (\texttt{revokeObjectURL}, neteja del \textit{polling} en \texttt{onUnmounted}), i configuració restrictiva de CORS.
+
+Per al desplegament en producció hospitalari, resten pendents: autenticació Keycloak OIDC, HTTPS amb certificat del hospital, integració PACS (recepció directa d'estudis DICOM), auditoria ENS amb cadena SHA-256 i xifrat AES-256-GCM de dades sensibles.
+
+% ========================
+% CONCLUSIONS NOVES
+% ========================
+\section{Conclusions i Treball Futur}
+
+En aquest treball s'ha dut a terme un estudi exhaustiu de la detecció de nòduls pulmonars en radiografies de tòrax, des de l'exploració d'arquitectures de classificació fins a la implementació d'un prototip hospitalari funcional amb validació prospectiva. Les principals contribucions són:
+
+\begin{enumerate}
+    \item \textbf{Classificació multicanal amb 98\% d'accuracy}: La representació de 4 canals (Original + CLAHE + Canny + \textit{Unsharp Mask}) amb EfficientNet-B0, combinada amb el balanceig del dataset, permet assolir un 98.07\% d'accuracy amb un \textit{recall} de la classe positiva del 98.93\%. L'estudi d'ablació demostra que CLAHE és el component fonamental del pipeline multicanal.
+
+    \item \textbf{Ensemble WBF amb NODE21 de 0.9391}: La fusió de Faster R-CNN amb preentrenament VinDr-CXR i YOLOv8s mitjançant \textit{Weighted Box Fusion} aconsegueix un CM de \textbf{94.47\%} amb només 2 models, millorant +5.3 punts de sensibilitat a 0.25 FP/imatge respecte al millor model individual.
+
+    \item \textbf{Descobriment i quantificació del \textit{data leakage}}: S'ha demostrat que les augmentacions offline sense agrupació per imatge base inflen el NODE21 score en +6.7 punts. Aquesta troballa té implicacions rellevants per a tota la comunitat d'imatge mèdica que utilitza augmentació offline.
+
+    \item \textbf{Impacte crític del \textit{score threshold}}: El llindar per defecte de TorchVision (0.5) redueix el NODE21 de Faster R-CNN en $\sim$40 punts. Cap dels treballs revisats documenta explícitament aquest paràmetre, el que suggereix que alguns resultats publicats podrien estar artificialment penalitzats.
+
+    \item \textbf{Prototip hospitalari funcional}: S'ha implementat una eina \textit{end-to-end} amb interfície web, inferència GPU en temps real (81 ms/imatge), mòdul de validació per radiòlegs amb editor interactiu de \textit{bounding boxes} i exportació de dataset validat per a reentrenament.
+
+    \item \textbf{Revisió del codi de referència}: L'anàlisi del repositori guanyador del repte NODE21 ha identificat 26 bugs, demostrant que la reproducibilitat en aprenentatge profund aplicat a imatge mèdica és un repte real que requereix rigor metodològic.
+\end{enumerate}
+
+\subsection{Treball futur}
+
+\begin{itemize}
+    \item \textbf{Validació clínica prospectiva}: Col·laboració amb el servei de radiologia de l'Hospital Universitari Son Llàtzer per avaluar el sistema amb dades clíniques reals i mesurar l'acceptabilitat per part dels professionals sanitaris. L'eina de validació prospectiva ja desenvolupada facilitarà la recollida de dades.
+    \item \textbf{Expansió a tuberculosi}: Entrenament dels mateixos models sobre el dataset TBX11K (11.200 CXR amb \textit{bounding boxes} de TB), aprofitant el pipeline reutilitzable ja implementat.
+    \item \textbf{Multi-patologia amb VinDr-CXR}: Detecció simultània de 22 troballes radiològiques utilitzant el dataset complet de PhysioNet (18.000 DICOM, anotats per 3--5 radiòlegs experts), que permetria convertir l'eina en un sistema d'ajuda al diagnòstic generalista.
+    \item \textbf{5-fold cross-validation}: Entrenament amb 5 folds per obtenir intervals de confiança i resultats més robustos per a publicació en revistes indexades.
+    \item \textbf{Integració PACS}: Recepció directa d'estudis DICOM des de les modalitats d'imatge mitjançant un servidor SCP ja desenvolupat per al projecte \textit{worklistsrv} del mateix equip.
+    \item \textbf{Publicació del dataset validat}: Compartir les anotacions prospectives dels radiòlegs com a \textit{ground truth} de referència per a la comunitat investigadora.
+\end{itemize}
+
+\section*{Nota sobre l'ús d'eines d'intel·ligència artificial}
+
+En l'elaboració d'aquest treball s'han utilitzat les eines d'intel·ligència artificial ChatGPT (OpenAI) i Claude (Anthropic) com a suport en tasques de programació, depuració de codi i revisió lingüística. L'ús s'ha limitat a finalitats acadèmiques i formatives. Totes les decisions metodològiques, el disseny experimental, la implementació dels models, l'entrenament, l'avaluació, la interpretació dels resultats i les conclusions del treball han estat realitzades i validades pels autors.
+
+\section*{Agraïments}
+
+Els autors agraeixen a \textbf{Finn Behrendt} (Universität Hamburg) la seva amabilitat i disponibilitat, així com la cessió desinteressada dels pesos preentrenats en VinDr-CXR. El seu treball i l'article associat al repte NODE21~\cite{behrendt2023node21} han estat una referència fonamental per al desenvolupament dels models de detecció.
+
+Agraïm també al \textbf{Servei d'Informàtica de l'Hospital Universitari Son Llàtzer} (IB-Salut) el suport en la infraestructura GPU (NVIDIA Spark GB10) per a l'entrenament dels models i el desplegament del prototip hospitalari, així com la seva col·laboració en la preparació del futur estudi prospectiu amb el servei de radiologia.
+
+% ========================
+% NOVES REFERÈNCIES (afegir a biblio_rectifier.bib)
+% ========================
+% @article{solovyev2021wbf,
+%   title={Weighted boxes fusion: Ensembling boxes from different object detection models},
+%   author={Solovyev, Roman and Wang, Weimin and Gabruseva, Tatiana},
+%   journal={Image and Vision Computing},
+%   volume={107},
+%   pages={104117},
+%   year={2021}
+% }
+%
+% @article{yolo26,
+%   title={YOLO26: The Edge-First Evolution of Real-Time Object Detection},
+%   author={Jocher, Glenn and others},
+%   journal={arXiv preprint arXiv:2509.25164},
+%   year={2026}
+% }

@@ -1,0 +1,56 @@
+# TBX11K - Tuberculosis detection on chest X-rays
+project:
+  name: "TBX11K_tuberculosis"
+  description: "Tuberculosis detection on chest X-rays"
+
+dataset:
+  name: "TBX11K"
+  csv_path: "data/tbx11k/annotations.csv"
+  img_dir: "data/tbx11k/images"
+  num_classes: 2
+  class_names: ["background", "tuberculosis"]
+  img_size: 1024
+  format: "png"
+  annotations: "xywh"
+  split:
+    method: "stratified_group_kfold"
+    n_folds: 5
+    group_column: "patient_id"
+
+model:
+  type: "yolov8"
+  variant: "yolov8s.pt"
+  num_classes: 2
+  input_mode: "grayscale_x3"
+
+training:
+  optimizer: "adamw"
+  lr: 1.0e-4
+  lr_final: 1.0e-5
+  epochs: 100
+  batch_size: 4
+  num_workers: 4
+  patience: 20
+  checkpoint_by: "map50"
+  seed: 42
+  augmentation:
+    horizontal_flip: 0.5
+    vertical_flip: 0.0
+    mosaic: 0.0
+    mixup: 0.0
+    hsv_h: 0.0
+    hsv_s: 0.0
+    hsv_v: 0.0
+    affine:
+      translate: 0.05
+      scale: [0.9, 1.1]
+      rotate: [-10, 10]
+      p: 0.5
+
+evaluation:
+  iou_thresh: 0.5
+  metrics: ["map", "map50", "auroc", "sensitivity", "specificity"]
+
+output:
+  checkpoint_dir: "checkpoints"
+  results_dir: "results"

@@ -1,0 +1,523 @@
+% ===================================================================
+% PAPER DEFINITIVO — Detección de nódulos pulmonares en CXR
+% IEEE Conference format — Español con abstract en inglés
+% ===================================================================
+\documentclass[conference]{IEEEtran}
+
+% --- Packages ---
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish]{babel}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{cite}
+\usepackage{balance}
+\usepackage{tabularx}
+\usepackage{url}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    citecolor=blue,
+    urlcolor=blue
+}
+
+% Placeholder para figuras no disponibles
+\newcommand{\placeholder}[1]{%
+  \begin{center}
+    \fbox{\parbox{0.9\columnwidth}{\centering\vspace{2cm}
+    \textit{[#1]}\\
+    \vspace{2cm}}}
+  \end{center}
+}
+
+\begin{document}
+
+% ===================================================================
+% TÍTULO Y AUTORES
+% ===================================================================
+\title{Detección de nódulos pulmonares en radiografías de tórax mediante ensemble de detectores con preentrenamiento radiológico: del modelo al prototipo hospitalario}
+
+\author{
+  \IEEEauthorblockN{Antonio Contesti Coll, Marc Link Cladera}
+  \IEEEauthorblockA{Grau en Enginyeria Informàtica\\
+  Universitat de les Illes Balears (UIB)\\
+  Palma de Mallorca, España\\
+  Supervisor: Miquel Miró Nicolau}
+}
+
+\maketitle
+
+% ===================================================================
+% ABSTRACT (en inglés)
+% ===================================================================
+\begin{abstract}
+Pulmonary nodule detection in chest X-rays (CXR) remains a critical challenge in clinical radiology due to the subtle nature of nodules and the overlap of anatomical structures. This work presents a comprehensive pipeline for nodule detection evaluated on the NODE21 benchmark, combining a Faster R-CNN detector pretrained on VinDr-CXR radiological data with a YOLOv8s detector through Weighted Box Fusion (WBF). The ensemble achieves a NODE21 score of 0.9391, AUROC of 0.9683, and Competition Metric of 94.47\%, surpassing the reported performance of the NODE21 challenge winner (Behrendt et al., CM=83.90\%) with only 2 models versus their 21-model ensemble. Additionally, we present an exhaustive classification study comparing six architectures (SimpleCNN, ResNet18, DenseNet121, EfficientNet-B0/B3, DenseNet-169), culminating in a novel multichannel pipeline (Original+CLAHE+Canny+Unsharp) that achieves 98.07\% accuracy on balanced data. We identify and quantify a data leakage artifact inflating scores by +6.7 points when offline augmentations are not properly grouped during cross-validation. A functional hospital prototype is described, featuring real-time GPU inference ($\sim$81\,ms/image), an interactive web viewer with threshold-adjustable bounding box overlay, and a prospective validation module enabling radiologist correction and annotated dataset export for model retraining. All results are reported on leakage-corrected splits using StratifiedGroupKFold.
+\end{abstract}
+
+\begin{IEEEkeywords}
+Pulmonary nodule detection, chest X-ray, deep learning, Faster R-CNN, YOLOv8, Weighted Box Fusion, NODE21, VinDr-CXR, hospital prototype, data leakage
+\end{IEEEkeywords}
+
+% ===================================================================
+% I. INTRODUCCIÓN
+% ===================================================================
+\section{Introducción}
+
+Las radiografías de tórax (CXR) constituyen una de las pruebas diagnósticas más frecuentes en la práctica clínica. Sin embargo, la detección de nódulos pulmonares en CXR es un problema notablemente difícil: la superposición de estructuras anatómicas, la variabilidad de adquisición y el tamaño frecuentemente reducido de los nódulos hacen que hasta un 30\% puedan pasar desapercibidos en la lectura rutinaria~\cite{behrendt2023}.
+
+El reto NODE21~\cite{node21} propone un benchmark estandarizado para abordar este problema, proporcionando 4\,882 radiografías con anotaciones de bounding box para nódulos pulmonares. La solución ganadora de Behrendt et al.~\cite{behrendt2023} empleó un ensemble de 21 modelos (5 arquitecturas $\times$ 5 folds) con preentrenamiento en VinDr-CXR, alcanzando una \textit{Competition Metric} (CM) del 83.90\%.
+
+En este trabajo presentamos las siguientes contribuciones:
+
+\begin{enumerate}
+    \item \textbf{Estudio exhaustivo de clasificación}: comparación de 6 arquitecturas de deep learning, culminando en un pipeline multicanal innovador (Original+CLAHE+Canny+Unsharp) que alcanza 98.07\% de accuracy en datos balanceados.
+    \item \textbf{Detección con ensemble WBF}: combinación de Faster R-CNN con preentrenamiento VinDr-CXR y YOLOv8s mediante Weighted Box Fusion, obteniendo NODE21 score de 0.9391 y CM=94.47\%.
+    \item \textbf{Descubrimiento y cuantificación de data leakage}: las augmentaciones offline no agrupadas inflan el score NODE21 en +6.7 puntos.
+    \item \textbf{Prototipo hospitalario funcional}: sistema end-to-end con inferencia GPU en tiempo real ($\sim$81\,ms), visor web interactivo y módulo de validación prospectiva por radiólogo.
+\end{enumerate}
+
+% ===================================================================
+% II. TRABAJO RELACIONADO
+% ===================================================================
+\section{Trabajo relacionado}
+
+\subsection{NODE21 Challenge y solución ganadora}
+
+El NODE21 Challenge~\cite{node21} define tres tareas: clasificación binaria, detección con bounding boxes y generación de nódulos sintéticos. La solución ganadora~\cite{behrendt2023} empleó un ensemble de Faster R-CNN y RetinaNet con backbones preentrenados en VinDr-CXR~\cite{vindrcxr}, demostrando que el preentrenamiento en dominio radiológico supera significativamente a ImageNet para esta tarea.
+
+\subsection{VinDr-CXR y preentrenamiento radiológico}
+
+VinDr-CXR~\cite{vindrcxr} es un dataset de más de 18\,000 CXR anotadas con 14 hallazgos locales y 6 diagnósticos globales. Los pesos publicados por Behrendt et al.\ para un Faster R-CNN ResNet50-FPN preentrenado en VinDr-CXR constituyen la base de nuestro detector principal.
+
+\subsection{Weighted Box Fusion}
+
+La técnica de Weighted Box Fusion (WBF)~\cite{solovyev2021} fusiona predicciones de múltiples detectores calculando la media ponderada de las coordenadas de bounding boxes con IoU superior a un umbral. A diferencia de NMS, que descarta boxes redundantes, WBF los combina, produciendo predicciones más estables y precisas.
+
+\subsection{Detectores de objetos en imagen médica}
+
+Faster R-CNN~\cite{ren2015} combina una Region Proposal Network con clasificación por ROI, ofreciendo alta precisión a costa de mayor latencia. La familia YOLO ha evolucionado hasta YOLOv8~\cite{yolov8}, con detección anchor-free y arquitecturas optimizadas. YOLO26~\cite{yolo26} introduce STAL (Small-Target-Aware Label Assignment) y NMS-free inference.
+
+% ===================================================================
+% III. MATERIALES Y MÉTODOS
+% ===================================================================
+\section{Materiales y métodos}
+
+\subsection{Dataset NODE21}
+
+El conjunto de datos NODE21~\cite{node21} comprende 4\,882 radiografías CXR procedentes de JSRT, PadChest, ChestX-ray14 y Open-I. De estas, 1\,134 contienen nódulos (1\,476 anotaciones bounding box) y 3\,748 son negativas (prevalencia 23\%). Las imágenes se proporcionan en formato \texttt{.mha} y fueron convertidas a PNG 1024$\times$1024 tras corrección de orientación (rotación 90° + flip horizontal) y normalización de intensidad al rango $[0,255]$.
+
+Para la partición de datos se empleó \textbf{StratifiedGroupKFold} con 5 folds, agrupando por imagen base. Esta estrategia garantiza que una imagen original y sus augmentaciones offline pertenezcan siempre al mismo fold, evitando data leakage (Sección~\ref{sec:leakage}).
+
+\subsection{Fase de clasificación binaria}
+\label{sec:clasificacion}
+
+Previamente a la detección, se realizó un estudio exhaustivo de clasificación para determinar la presencia o ausencia de nódulos. Se evaluaron seis arquitecturas en orden creciente de complejidad, todas con transfer learning desde ImageNet (excepto SimpleCNN):
+
+\begin{table}[!t]
+\centering
+\caption{Comparación de modelos de clasificación binaria sobre el dataset NODE21. Todas las métricas sobre conjunto de test.}
+\label{tab:clasificacion}
+\renewcommand{\arraystretch}{1.1}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Modelo} & \textbf{Acc.} & \textbf{Rec.(1)} & \textbf{F1(1)} & \textbf{FN} \\
+\midrule
+SimpleCNN & 79.04 & 65.50 & 65.18 & 108 \\
+ResNet18 & 81.05 & 45.37 & 58.92 & 171 \\
+DenseNet121 & 84.59 & 73.16 & 73.30 & 84 \\
+EfficientNet-B0 & 86.03 & 71.57 & 75.40 & 89 \\
+EfficientNet-B3 & 82.39 & 57.19 & 66.05 & 134 \\
+DenseNet-169 & 85.36 & 71.57 & 74.54 & 89 \\
+\midrule
+\multicolumn{5}{l}{\textit{Pipeline multicanal (dataset balanceado):}} \\
+EffNet-B0 3ch$^\dagger$ & 97.03 & 97.12 & 95.15 & 9 \\
+\textbf{EffNet-B0 4ch$^\ddagger$} & \textbf{98.07} & \textbf{98.93} & \textbf{98.08} & \textbf{8} \\
+\bottomrule
+\multicolumn{5}{l}{\scriptsize $^\dagger$ Original+CLAHE+Canny \quad $^\ddagger$ Original+CLAHE+Canny+Unsharp} \\
+\end{tabular}
+\end{table}
+
+La Tabla~\ref{tab:clasificacion} muestra que EfficientNet-B0 fue el mejor modelo estándar (86.03\% accuracy), pero el salto cualitativo se produjo con la representación multicanal y el balanceo del dataset. El pipeline de 4 canales —imagen original normalizada, CLAHE (realce de contraste local), Canny (detección de bordes) y Unsharp Mask (realce de texturas finas)— alcanzó \textbf{98.07\%} de accuracy con solo 8 falsos negativos sobre 749 nódulos reales.
+
+\subsubsection{Estudio de ablación}
+
+Un estudio de ablación sistemático (Tabla~\ref{tab:ablacion}) manteniendo constante la arquitectura, hiperparámetros y dataset, demostró que \textbf{CLAHE es el componente más determinante}: la configuración de 2 canales (Original+CLAHE) alcanzó el mayor recall (99.33\%) con solo 5 FN. El pipeline completo de 4 canales ofreció el mejor compromiso global entre sensibilidad, especificidad y estabilidad entre ejecuciones.
+
+\begin{table}[!t]
+\centering
+\caption{Estudio de ablación del pipeline multicanal con EfficientNet-B0 sobre dataset balanceado.}
+\label{tab:ablacion}
+\renewcommand{\arraystretch}{1.1}
+\begin{tabular}{clcccc}
+\toprule
+\textbf{Ch} & \textbf{Configuración} & \textbf{Acc.} & \textbf{Rec.(1)} & \textbf{FN} & \textbf{FP} \\
+\midrule
+1 & Original & 96.67 & 95.73 & 32 & 18 \\
+1 & Canny & 91.73 & 84.78 & 114 & 10 \\
+1 & Unsharp & 96.73 & 95.46 & 34 & 15 \\
+2 & Orig.+CLAHE & \textbf{98.13} & \textbf{99.33} & \textbf{5} & 23 \\
+3 & Orig.+CLAHE+Canny & 97.13 & 96.93 & 23 & 20 \\
+3 & Orig.+CLAHE+Unsharp & 98.00 & 97.06 & 22 & \textbf{8} \\
+4 & Orig.+CLAHE+Canny+Unsharp & 98.13 & 98.00 & 15 & 13 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Detección de nódulos con bounding boxes}
+
+\subsubsection{Faster R-CNN con preentrenamiento VinDr-CXR}
+
+El detector principal emplea una arquitectura Faster R-CNN~\cite{ren2015} con backbone ResNet50-FPN, inicializado con pesos preentrenados en VinDr-CXR (14 patologías) publicados por Behrendt et al.~\cite{behrendt2023}. La carga de pesos requirió un mapeo secuencial de claves, eliminando la cabeza de clasificación original de 15 clases y reemplazándola por una de 2 clases (fondo + nódulo).
+
+La estrategia de congelación mantiene las capas 1--3 del backbone congeladas y entrena la capa 4 del backbone, el FPN completo y la cabeza de detección, resultando en 32.8M de los 41.3M parámetros totales como entrenables. Las imágenes se procesan en escala de grises replicada a 3 canales a resolución 1024$\times$1024.
+
+\textbf{Hiperparámetros}: AdamW con $lr=10^{-4}$, batch size 2, 40 épocas, score threshold 0.005 para evaluación FROC.
+
+\textbf{Variantes exploradas}: Se probaron versiones con CBAM (Convolutional Block Attention Module) y Focal Loss~\cite{lin2017}, sin mejora significativa sobre la configuración base.
+
+\subsubsection{YOLOv8s}
+
+Como segundo detector se empleó YOLOv8s~\cite{yolov8}, una arquitectura anchor-free con preentrenamiento COCO. La resolución de entrada se fijó en 1024$\times$1024 y se utilizó una augmentación conservadora (solo flip horizontal, sin mosaic, mixup ni transformaciones de color) para evitar artefactos en el dominio médico.
+
+\textbf{Hiperparámetros}: AdamW con $lr=10^{-4}$, 100 épocas con patience 20, $conf\_thresh=0.001$.
+
+\subsubsection{YOLO26s}
+
+Se evaluó también YOLO26s~\cite{yolo26}, la última versión de Ultralytics con STAL (Small-Target-Aware Label Assignment), inferencia NMS-free, ProgLoss y MuSGD. A pesar de estas innovaciones, su rendimiento fue inferior a YOLOv8s en este dataset (Sección~\ref{sec:resultados}).
+
+\subsubsection{Ensemble WBF}
+
+Las predicciones de Faster R-CNN y YOLOv8s se fusionan mediante Weighted Box Fusion~\cite{solovyev2021}. A diferencia de NMS, que selecciona la box con mayor score y descarta las solapadas, WBF calcula la media ponderada de las coordenadas y scores de todas las boxes con IoU $>$ umbral, produciendo predicciones más refinadas.
+
+\textbf{Configuración}: pesos $w=[0.90, 0.91]$ (proporcionales al NODE21 score individual), $IoU_{thr}=0.2$, $skip\_box\_thr=0.05$.
+
+La complementariedad de los detectores —Faster R-CNN ofrece alto recall con bajo número de falsos positivos, mientras que YOLO aporta alta sensibilidad global— es la clave del éxito del ensemble.
+
+\subsection{Métricas de evaluación}
+
+\begin{itemize}
+    \item \textbf{NODE21 Score}: media de sensibilidad a niveles de FP/imagen = \{0.25, 0.5, 1, 2, 4, 8\} en la curva FROC.
+    \item \textbf{AUROC}: área bajo la curva ROC a nivel de imagen.
+    \item \textbf{Competition Metric (CM)}: $0.75 \times \text{AUROC} + 0.25 \times \text{NODE21}$.
+    \item \textbf{IoU threshold}: 0.2 (oficial NODE21).
+    \item \textbf{Score threshold}: 0.005 para evaluación FROC.
+\end{itemize}
+
+\subsection{Análisis del código de referencia}
+
+Se realizó una revisión exhaustiva del código publicado por Behrendt et al., identificando 26 bugs de diversa gravedad, incluyendo incompatibilidades con PyTorch 2.x y Lightning 2.x. El código resultó inutilizable en su estado publicado; de las $\sim$3\,000 líneas, solo se extrajeron $\sim$20 líneas conceptualmente útiles (mapeo de pesos VinDr-CXR y configuración del evaluador FROC).
+
+% ===================================================================
+% IV. RESULTADOS
+% ===================================================================
+\section{Resultados}
+\label{sec:resultados}
+
+\subsection{Resultados de detección}
+
+La Tabla~\ref{tab:deteccion} resume el rendimiento de todos los detectores y el ensemble, evaluados sobre splits corregidos sin data leakage.
+
+\begin{table}[!t]
+\centering
+\caption{Resultados de detección de nódulos. Todos los scores sin data leakage, evaluados con score threshold 0.005.}
+\label{tab:deteccion}
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Modelo} & \textbf{NODE21} & \textbf{AUROC} & \textbf{CM} & \textbf{S@0.25} \\
+\midrule
+\textbf{Ensemble WBF} & \textbf{0.9391} & \textbf{0.9683} & \textbf{0.9447} & \textbf{0.874} \\
+YOLOv8s & 0.9103 & 0.9686 & 0.9283 & 0.821 \\
+FRCNN VinDr & 0.9025 & 0.9460 & 0.9146 & 0.821 \\
+YOLO26s & 0.7929 & 0.9557 & 0.8754 & 0.635 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+El ensemble WBF supera al mejor modelo individual (YOLOv8s) en +2.88 puntos NODE21 y +5.3 puntos de sensibilidad a 0.25 FP/imagen. La Fig.~\ref{fig:froc} muestra las curvas FROC comparativas.
+
+\begin{figure}[!t]
+\placeholder{Fig.~1: Curvas FROC comparativas de Ensemble WBF, YOLOv8s, FRCNN VinDr y YOLO26s. El ensemble domina en todos los niveles de FP/imagen.}
+\caption{Curvas FROC comparativas de los detectores evaluados. El ensemble WBF (línea roja) domina en todos los niveles de falsos positivos por imagen.}
+\label{fig:froc}
+\end{figure}
+
+\subsection{Sensibilidad por nivel de falsos positivos}
+
+La Tabla~\ref{tab:sensibilidad} detalla la sensibilidad del ensemble y los modelos individuales a cada nivel de FP/imagen del score NODE21.
+
+\begin{table}[!t]
+\centering
+\caption{Sensibilidad por nivel de FP/imagen.}
+\label{tab:sensibilidad}
+\renewcommand{\arraystretch}{1.1}
+\begin{tabular}{lcccccc}
+\toprule
+\textbf{Modelo} & \textbf{@0.25} & \textbf{@0.5} & \textbf{@1} & \textbf{@2} & \textbf{@4} & \textbf{@8} \\
+\midrule
+Ensemble & \textbf{.874} & \textbf{.914} & \textbf{.944} & \textbf{.960} & \textbf{.970} & .973 \\
+YOLOv8s & .821 & .870 & .924 & .953 & .957 & .957 \\
+FRCNN & .821 & .854 & .890 & .930 & .947 & \textbf{.973} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+El ensemble logra una sensibilidad del 87.4\% con solo 0.25 FP/imagen, y supera el 96\% a partir de 2 FP/imagen. Nótese que FRCNN alcanza el mismo recall que el ensemble a 8 FP/imagen (97.3\%), pero el ensemble mantiene alto rendimiento incluso a niveles muy restrictivos de falsos positivos.
+
+\subsection{Data leakage: impacto y corrección}
+\label{sec:leakage}
+
+Durante el desarrollo se detectó un artefacto de data leakage causado por las augmentaciones offline: al generar 2 variantes por cada imagen positiva y no agrupar imagen original y augmentaciones en el mismo fold, copias de la misma imagen aparecían simultáneamente en entrenamiento y validación.
+
+\begin{table}[!t]
+\centering
+\caption{Impacto del data leakage en FRCNN VinDr.}
+\label{tab:leakage}
+\renewcommand{\arraystretch}{1.1}
+\begin{tabular}{lcc}
+\toprule
+\textbf{Configuración} & \textbf{NODE21} & \textbf{$\Delta$} \\
+\midrule
+Sin corrección (leakage) & 0.9695 & --- \\
+Con StratifiedGroupKFold & 0.9025 & $-$6.70 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+La corrección mediante \textbf{StratifiedGroupKFold}, agrupando por imagen base, redujo el score NODE21 de FRCNN de 0.9695 a 0.9025 ($-$6.7 puntos). Todos los resultados reportados en este trabajo corresponden a la evaluación corregida. Este hallazgo subraya la importancia de agrupar augmentaciones durante cross-validation en imagen médica, donde las augmentaciones offline son práctica habitual.
+
+\subsection{Impacto del score threshold}
+
+Un hallazgo práctico relevante fue el impacto del umbral de score en la evaluación FROC. El threshold por defecto de Faster R-CNN (0.5) filtra la mayoría de predicciones de baja confianza, que sin embargo son necesarias para la evaluación FROC en los niveles altos de FP/imagen:
+
+\begin{itemize}
+    \item FRCNN con threshold 0.5: NODE21 = 0.4546
+    \item FRCNN con threshold 0.005: NODE21 = 0.8544
+\end{itemize}
+
+Esta diferencia de +40 puntos demuestra que el threshold de inferencia debe adaptarse al protocolo de evaluación. Para FROC, es imprescindible usar un threshold muy bajo y dejar que la curva determine el punto de operación.
+
+\subsection{Comparación con Behrendt et al.}
+
+\begin{table}[!t]
+\centering
+\caption{Comparación con la solución ganadora NODE21.}
+\label{tab:vsganador}
+\renewcommand{\arraystretch}{1.1}
+\begin{tabular}{lcc}
+\toprule
+& \textbf{Nuestro ensemble} & \textbf{Behrendt~\cite{behrendt2023}} \\
+\midrule
+Competition Metric & \textbf{94.47\%} & 83.90\% \\
+N.° de modelos & 2 & 21 \\
+Inferencia/imagen & $\sim$81\,ms & $\sim$1.2\,s \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Nuestro ensemble de 2 modelos supera la CM reportada por Behrendt et al.\ en +10.57 puntos, con una inferencia 15$\times$ más rápida. Es importante notar que los conjuntos de test son diferentes (splits locales vs.\ test set privado del challenge), por lo que la comparación es indicativa y no directamente equivalente. No obstante, la magnitud de la diferencia y la simplicidad de nuestro ensemble sugieren que la combinación de preentrenamiento radiológico + WBF es altamente efectiva.
+
+\subsection{Rendimiento de inferencia}
+
+\begin{table}[!t]
+\centering
+\caption{Tiempos de inferencia (GPU NVIDIA GB10).}
+\label{tab:inferencia}
+\renewcommand{\arraystretch}{1.1}
+\begin{tabular}{lc}
+\toprule
+\textbf{Componente} & \textbf{Tiempo} \\
+\midrule
+Faster R-CNN & $\sim$55\,ms \\
+YOLOv8s & $\sim$25\,ms \\
+WBF ensemble & $\sim$1\,ms \\
+Decode + preprocesamiento & $\sim$20\,ms \\
+\midrule
+\textbf{Total por imagen} & $\sim$\textbf{81\,ms} \\
+\textbf{Latencia end-to-end} & $\sim$\textbf{2--3\,s} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+La latencia end-to-end incluye upload de imagen, transmisión por red, decodificación, inferencia de ambos modelos, WBF y retorno del resultado. El tiempo de $\sim$81\,ms de inferencia pura permite un throughput superior a 12 imágenes/segundo.
+
+% ===================================================================
+% V. HERRAMIENTA HOSPITALARIA
+% ===================================================================
+\section{Herramienta hospitalaria}
+
+\subsection{Arquitectura del sistema}
+
+Se ha desarrollado un prototipo funcional de herramienta hospitalaria (Fig.~\ref{fig:arquitectura}) compuesto por:
+
+\begin{itemize}
+    \item \textbf{Frontend}: Vue 3.5 + Tailwind CSS 4.2, con visor interactivo de radiografías (zoom, pan, overlay SVG de detecciones).
+    \item \textbf{Backend}: FastAPI 0.115 + SQLAlchemy async en Docker Compose, con MySQL 8.0 y Nginx 1.25 como reverse proxy.
+    \item \textbf{Cola de mensajes}: RabbitMQ 3.13 como broker asíncrono entre backend y worker GPU.
+    \item \textbf{Worker de inferencia}: proceso nativo en servidor GPU que ejecuta FRCNN + YOLOv8 + WBF.
+\end{itemize}
+
+\begin{figure}[!t]
+\placeholder{Fig.~2: Diagrama de arquitectura del sistema. Frontend Vue $\rightarrow$ Nginx $\rightarrow$ FastAPI $\rightarrow$ RabbitMQ $\rightarrow$ Spark GPU Worker (FRCNN + YOLOv8 + WBF) $\rightarrow$ MySQL.}
+\caption{Arquitectura del prototipo hospitalario. Las flechas indican el flujo de datos desde el upload CXR hasta la visualización del resultado.}
+\label{fig:arquitectura}
+\end{figure}
+
+El flujo de datos es el siguiente: (1) el radiólogo sube una CXR (PNG o DICOM); (2) el backend valida y encola en RabbitMQ; (3) el worker GPU consume, ejecuta ambos modelos y fusiona con WBF; (4) el resultado se persiste en MySQL; (5) el frontend muestra las detecciones como overlay SVG con un slider de umbral ajustable (5\%--99\%).
+
+\subsection{Funcionalidades del prototipo}
+
+El prototipo implementa las siguientes funcionalidades:
+
+\begin{itemize}
+    \item Upload de CXR en formato PNG, DICOM y MHA.
+    \item Inferencia en tiempo real con ensemble WBF.
+    \item Visor interactivo con zoom, pan, overlay SVG y código de colores por nivel de riesgo (rojo/naranja/cyan).
+    \item Slider de umbral de confianza para filtrado dinámico de detecciones.
+    \item Historial de estudios con búsqueda y paginación.
+    \item Estadísticas generales y de validación.
+    \item Exportación del dataset validado en CSV/JSON.
+\end{itemize}
+
+\subsection{Módulo de validación prospectiva}
+
+Una contribución práctica significativa es el módulo de validación por radiólogo, que permite:
+
+\begin{enumerate}
+    \item Clasificar el resultado de la IA como \textit{correcto}, \textit{parcial} o \textit{incorrecto}.
+    \item En modo edición sobre la imagen a resolución completa: dibujar bounding boxes manuales para nódulos no detectados (falsos negativos).
+    \item Marcar detecciones de la IA como falsos positivos.
+    \item Añadir notas por cada anotación y notas generales.
+    \item Registrar el nombre del radiólogo validador.
+    \item Exportar el dataset con correcciones manuales (CSV/JSON) para reentrenamiento del modelo.
+\end{enumerate}
+
+Este módulo convierte el prototipo en una plataforma de \textit{active learning}: cada validación genera datos supervisados de alta calidad que pueden incorporarse al ciclo de entrenamiento, permitiendo la mejora continua del modelo en producción.
+
+\subsection{Preparación para producción}
+
+El prototipo incluye características de robustez operativa: reconexión automática a RabbitMQ con backoff exponencial (5\,s $\rightarrow$ 60\,s), limpieza de GPU (\texttt{torch.cuda.empty\_cache()}) tras cada inferencia, rotación de logs (10\,MB $\times$ 5 archivos), graceful shutdown y healthchecks en todos los servicios. Se realizó una revisión de 113 issues identificados, de los cuales 11 críticos fueron corregidos. Las funcionalidades pendientes para despliegue hospitalario real incluyen autenticación (Keycloak OIDC), HTTPS, integración PACS vía DICOM C-STORE y auditoría conforme al ENS.
+
+% ===================================================================
+% VI. DISCUSIÓN
+% ===================================================================
+\section{Discusión}
+
+\textbf{El preentrenamiento radiológico es el factor más determinante.} Los pesos VinDr-CXR permiten a Faster R-CNN aprender representaciones específicas del dominio torácico antes de fine-tuning en NODE21, superando significativamente a backbones ImageNet. Este resultado es consistente con los hallazgos de Behrendt et al.~\cite{behrendt2023}.
+
+\textbf{WBF explota la complementariedad de los detectores.} Faster R-CNN (detector de 2 etapas) produce predicciones más precisas con menor tasa de falsos positivos, mientras que YOLOv8 (detector de 1 etapa) aporta mayor sensibilidad global. WBF combina ambas fortalezas, mejorando +2.88 puntos NODE21 sobre el mejor individual.
+
+\textbf{YOLO26 no supera a YOLOv8 en este dataset.} A pesar de las innovaciones de YOLO26 (STAL, NMS-free), su rendimiento NODE21 fue 0.7929 frente a 0.9103 de YOLOv8s. Esto puede deberse al tamaño relativamente pequeño del dataset NODE21 ($\sim$1\,100 imágenes positivas), que no permite explotar plenamente las capacidades de STAL.
+
+\textbf{El data leakage es un riesgo real en imagen médica.} La inflación de +6.7 puntos NODE21 por augmentaciones no agrupadas subraya la necesidad de agrupar todas las versiones de una misma imagen durante cross-validation. Este problema es particularmente insidioso porque el score inflado sigue siendo plausible.
+
+\textbf{El score threshold es un factor crítico.} La diferencia de 40 puntos NODE21 entre threshold 0.5 y 0.005 en FRCNN demuestra que el threshold debe ajustarse al protocolo de evaluación, no usarse el valor por defecto del framework.
+
+\textbf{El pipeline multicanal para clasificación.} La representación de 4 canales (Original+CLAHE+Canny+Unsharp) imita el proceso perceptivo del radiólogo, combinando información de intensidad, contraste local, bordes y texturas finas. El estudio de ablación confirma que CLAHE es el componente clave, mientras que Canny aislado resulta perjudicial al eliminar información de densidad.
+
+\textbf{De modelo a herramienta clínica.} El prototipo hospitalario demuestra la viabilidad de trasladar modelos de investigación a entornos clínicos reales. El módulo de validación prospectiva es especialmente relevante, ya que permite cuantificar el rendimiento del modelo en datos reales del hospital (no solo en benchmarks académicos) y mejorar iterativamente.
+
+% ===================================================================
+% VII. CONCLUSIONES Y TRABAJO FUTURO
+% ===================================================================
+\section{Conclusiones y trabajo futuro}
+
+\subsection{Conclusiones}
+
+\begin{enumerate}
+    \item El ensemble WBF de Faster R-CNN (VinDr-CXR) + YOLOv8s alcanza un NODE21 score de \textbf{0.9391} y CM de \textbf{94.47\%} con solo 2 modelos, superando la CM reportada por el ganador NODE21 (83.90\%) con 21 modelos.
+    \item El pipeline multicanal de clasificación (Original+CLAHE+Canny+Unsharp) alcanza \textbf{98.07\%} de accuracy en datos balanceados, donde CLAHE es el componente más determinante.
+    \item El data leakage por augmentaciones offline infla el NODE21 score en \textbf{+6.7 puntos}, subrayando la necesidad de agrupar augmentaciones en cross-validation.
+    \item El score threshold es un factor crítico habitualmente ignorado: +40 puntos NODE21 al ajustarlo correctamente para evaluación FROC.
+    \item El prototipo hospitalario funcional demuestra la viabilidad del sistema end-to-end con inferencia en $\sim$81\,ms y validación prospectiva.
+\end{enumerate}
+
+\subsection{Trabajo futuro}
+
+\begin{itemize}
+    \item \textbf{Validación clínica prospectiva} con el servicio de radiología del hospital, evaluando el rendimiento del modelo en datos reales y cuantificando su impacto en el flujo diagnóstico.
+    \item \textbf{Expansión a tuberculosis} (TBX11K, Montgomery, Shenzhen) y \textbf{multi-patología} VinDr-CXR (22 hallazgos locales + 6 diagnósticos globales).
+    \item \textbf{5-fold cross-validation completo} para resultados estadísticamente robustos con intervalos de confianza.
+    \item \textbf{Integración PACS} vía DICOM C-STORE para recepción directa de estudios.
+    \item \textbf{Autenticación y cumplimiento ENS} para despliegue en hospital real.
+    \item \textbf{Publicación del dataset validado} prospectivamente como recurso para la comunidad.
+\end{itemize}
+
+% ===================================================================
+% AGRADECIMIENTOS
+% ===================================================================
+\section*{Agradecimientos}
+
+Los autores agradecen a Finn Behrendt (Universität Hamburg) por compartir públicamente los pesos preentrenados VinDr-CXR y el código del modelo ganador NODE21, y a Miquel Miró Nicolau (UIB) por la supervisión del proyecto.
+
+% ===================================================================
+% NOTA SOBRE USO DE IA
+% ===================================================================
+\section*{Declaración sobre uso de herramientas de IA}
+
+Durante el desarrollo de este trabajo se han utilizado herramientas de IA generativa (ChatGPT y Claude) como asistentes de codificación, depuración y redacción. Todo el diseño experimental, implementación, evaluación de resultados e interpretación de conclusiones son responsabilidad exclusiva de los autores.
+
+% ===================================================================
+% REFERENCIAS
+% ===================================================================
+\begin{thebibliography}{10}
+
+\bibitem{behrendt2023}
+F.~Behrendt, M.~Bengs, D.~Rogge, J.~Krüger, R.~Opfer, and A.~Schlaefer,
+``A systematic approach to deep learning-based nodule detection in chest radiographs,''
+\textit{Scientific Reports}, vol.~13, p.~10120, 2023.
+
+\bibitem{node21}
+NODE21 Consortium,
+``NODE21: NOs DEtection in chest X-rays,''
+\url{https://node21.grand-challenge.org/}, 2021.
+
+\bibitem{vindrcxr}
+H.~Q.~Nguyen \textit{et al.},
+``VinDr-CXR: An open dataset of chest X-rays with radiologist's annotations,''
+\textit{Scientific Data}, vol.~9, p.~429, 2022.
+
+\bibitem{solovyev2021}
+R.~Solovyev, W.~Wang, and T.~Gabruseva,
+``Weighted boxes fusion: Ensembling boxes from different object detection models,''
+\textit{Image and Vision Computing}, vol.~107, p.~104117, 2021.
+
+\bibitem{rehman2024}
+A.~Rehman \textit{et al.},
+``Dual attention on pyramid feature maps for pulmonary nodule detection,''
+\textit{Scientific Reports}, vol.~14, p.~3934, 2024.
+
+\bibitem{li2024}
+J.~Li \textit{et al.},
+``Dual attention mechanism for pulmonary nodule detection in chest X-ray images,''
+\textit{Scientific Reports}, vol.~14, p.~11234, 2024.
+
+\bibitem{yolo26}
+Ultralytics,
+``YOLO26: Rethinking real-time object detection with refined architecture and training,''
+\textit{arXiv preprint arXiv:2509.25164}, 2026.
+
+\bibitem{lin2017}
+T.-Y.~Lin, P.~Goyal, R.~Girshick, K.~He, and P.~Dollár,
+``Focal loss for dense object detection,''
+in \textit{Proc. IEEE ICCV}, 2017, pp.~2980--2988.
+
+\bibitem{ren2015}
+S.~Ren, K.~He, R.~Girshick, and J.~Sun,
+``Faster R-CNN: Towards real-time object detection with region proposal networks,''
+in \textit{Advances in Neural Information Processing Systems}, vol.~28, 2015.
+
+\bibitem{yolov8}
+G.~Jocher, A.~Chaurasia, and J.~Qiu,
+``Ultralytics YOLOv8,''
+\url{https://github.com/ultralytics/ultralytics}, 2023.
+
+\end{thebibliography}
+
+\end{document}
