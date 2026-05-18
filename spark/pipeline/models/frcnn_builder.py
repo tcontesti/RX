@@ -106,11 +106,20 @@ class ResNetBackboneWithCBAM(nn.Module):
 # ---------------------------------------------------------------------------
 
 def _freeze_layers(model: nn.Module, freeze_layers: list):
-    """Freeze named parameters whose name starts with any prefix in *freeze_layers*."""
+    """Freeze named parameters matching any prefix in *freeze_layers*.
+
+    Prefixes are matched both as-is and with 'backbone.body.' prepended,
+    so config can use short names like 'layer1' or full paths.
+    """
     if not freeze_layers:
         return
+    # Build expanded prefixes to match both short and full parameter paths
+    expanded = []
+    for prefix in freeze_layers:
+        expanded.append(prefix)
+        expanded.append(f"backbone.body.{prefix}")
     for name, param in model.named_parameters():
-        for prefix in freeze_layers:
+        for prefix in expanded:
             if name.startswith(prefix):
                 param.requires_grad = False
                 break

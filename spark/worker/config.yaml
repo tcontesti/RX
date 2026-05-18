@@ -2,10 +2,10 @@
 # Ajustar según entorno (desarrollo vs producción)
 
 rabbitmq:
-  host: "RABBITMQ_HOST_IP"     # IP del servidor Docker con RabbitMQ (CAMBIAR)
+  host: "$RABBITMQ_HOST"      # mDNS hostname (no depende de IP fija)
   port: 5672
   user: "cxr_worker"
-  password: "CHANGE_ME_RABBITMQ_PASS"  # CAMBIAR en producción
+  password: "CHANGE_ME_RABBITMQ_PASS"
   queue_input: "cxr.inference"
   queue_output: "cxr.results"
   prefetch_count: 1            # 1 tarea a la vez (GPU)
@@ -33,7 +33,7 @@ ensemble:
 inference:
   device: "cuda:0"
   input_size: 1024
-  output_confidence_thresh: 0.3  # Threshold para resultados finales
+  output_confidence_thresh: 0.01  # Threshold para resultados finales
   save_annotated_image: true
 
 logging:

@@ -602,7 +602,10 @@ def save_visualisations(results_dict, img_dir, output_dir, num_vis=30):
 
         for tag, subset in [("best", best), ("worst", worst)]:
             for i, info in enumerate(subset):
-                img_path = os.path.join(img_dir, info["img_name"])
+                fname = info["img_name"]
+                if not fname.endswith(".png"):
+                    fname = f"{fname}.png"
+                img_path = os.path.join(img_dir, fname)
                 img = cv2.imread(str(img_path), cv2.IMREAD_UNCHANGED)
                 if img is None:
                     continue

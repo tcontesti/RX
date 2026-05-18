@@ -10,6 +10,8 @@ ExecStart=/home/husll-spark-01/nodule_detection/worker/start_worker.sh
 Restart=always
 RestartSec=10
 Environment=PYTHONPATH=/home/husll-spark-01/nodule_detection
+StandardOutput=append:/home/husll-spark-01/nodule_detection/worker/worker_live.log
+StandardError=append:/home/husll-spark-01/nodule_detection/worker/worker_live.log
 
 [Install]
 WantedBy=multi-user.target
