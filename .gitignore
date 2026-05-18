@@ -29,7 +29,7 @@ service-account*.json
 
 # PDFs regenerables (preservamos sólo la memoria académica oficial)
 *.pdf
-!tfg/MemoriaTFG.pdf
+!memoria/Memoria.pdf
 
 # LaTeX auxiliares
 *.aux
@@ -81,7 +81,7 @@ npm-debug.log
 *.dcm
 checkpoints/
 
-# Datasets locales y carpetas pesadas del TFG
+# Datasets locales y carpetas pesadas
 original-project/dataset_node21/
 original-project/ENTREGA/
 original-project/node21-submit-master/

@@ -4,8 +4,8 @@
 
 La memoria académica está disponible en dos formatos en el repositorio:
 
-- [`tfg/MemoriaTFG.pdf`](../tfg/MemoriaTFG.pdf) — PDF compilado, listo para lectura.
-- [`tfg/source/`](../tfg/source/) — fuente LaTeX completa, lista para recompilar.
+- [`memoria/Memoria.pdf`](../memoria/Memoria.pdf) — PDF compilado, listo para lectura.
+- [`memoria/source/`](../memoria/source/) — fuente LaTeX completa, lista para recompilar.
 
 ## Estructura del documento
 
@@ -33,12 +33,12 @@ El documento sigue el formato IEEE de doble columna. La estructura cubre los cap
 
 ## Recompilar el documento
 
-Las instrucciones detalladas están en [`tfg/README.md`](../tfg/README.md). En resumen, con TeX Live o MiKTeX instalado:
+Las instrucciones detalladas están en [`memoria/README.md`](../memoria/README.md). En resumen, con TeX Live o MiKTeX instalado:
 
 ```bash
-cd tfg/source
+cd memoria/source
 latexmk -pdf Memoria_v2_IEEE.tex
-cp Memoria_v2_IEEE.pdf ../MemoriaTFG.pdf
+cp Memoria_v2_IEEE.pdf ../Memoria.pdf
 ```
 
 ## Documentos complementarios

@@ -8,7 +8,7 @@ Cuatro escenarios prácticos para reutilizar el material de este repositorio. Pa
 
 ## A · Compilar la memoria académica
 
-**Qué obtienes:** el PDF `tfg/MemoriaTFG.pdf` regenerado desde fuente.
+**Qué obtienes:** el PDF `memoria/Memoria.pdf` regenerado desde fuente.
 
 **Requisitos:**
 
@@ -19,9 +19,9 @@ Cuatro escenarios prácticos para reutilizar el material de este repositorio. Pa
 **Comandos:**
 
 ```bash
-cd tfg/source
+cd memoria/source
 latexmk -pdf Memoria_v2_IEEE.tex
-cp Memoria_v2_IEEE.pdf ../MemoriaTFG.pdf
+cp Memoria_v2_IEEE.pdf ../Memoria.pdf
 ```
 
 **Tiempo estimado:** 2–3 minutos en hardware moderno.

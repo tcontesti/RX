@@ -1,14 +1,14 @@
-# tfg/
+# memoria/
 
 Documento académico del proyecto. Dos formatos:
 
-- `MemoriaTFG.pdf` — PDF compilado, listo para lectura.
+- `Memoria.pdf` — PDF compilado, listo para lectura.
 - `source/` — fuente LaTeX completa, lista para recompilar.
 
 ## Estructura de la fuente
 
 ```
-tfg/source/
+memoria/source/
 ├── Memoria_v2_IEEE.tex     documento principal (formato IEEE)
 ├── Paper_definitivo.tex    versión paper (extendida)
 ├── secciones_nuevas.tex    secciones añadidas en la extensión hospitalaria
@@ -29,7 +29,7 @@ Distribuciones recomendadas:
 Para compilar el documento principal:
 
 ```bash
-cd tfg/source
+cd memoria/source
 pdflatex Memoria_v2_IEEE.tex
 biber    Memoria_v2_IEEE          # o: bibtex Memoria_v2_IEEE
 pdflatex Memoria_v2_IEEE.tex
@@ -39,14 +39,14 @@ pdflatex Memoria_v2_IEEE.tex
 Con `latexmk` (mucho más cómodo):
 
 ```bash
-cd tfg/source
+cd memoria/source
 latexmk -pdf Memoria_v2_IEEE.tex
 ```
 
 Para regenerar el PDF que se muestra en el repositorio:
 
 ```bash
-cp Memoria_v2_IEEE.pdf ../MemoriaTFG.pdf
+cp Memoria_v2_IEEE.pdf ../Memoria.pdf
 ```
 
 ## Citar este documento
@@ -57,9 +57,10 @@ cp Memoria_v2_IEEE.pdf ../MemoriaTFG.pdf
   title        = {Detecci\'on autom\'atica de n\'odulos pulmonares en
                   radiograf\'ias de t\'orax mediante deep learning},
   year         = {2026},
-  howpublished = {Bachelor's Thesis, Escola Polit\`ecnica Superior,
+  howpublished = {Trabajo final de la asignatura de Aprendizaje
+                  Autom\'atico, Escola Polit\`ecnica Superior,
                   Universitat de les Illes Balears},
-  note         = {Supervisor: Dr. Miquel Mir\'o Nicolau}
+  note         = {Profesor: Dr. Miquel Mir\'o Nicolau}
 }
 ```
 

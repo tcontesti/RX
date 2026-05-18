@@ -32,12 +32,12 @@ https://creativecommons.org/licenses/by-nc/4.0/
 
 Scope of this license:
 
-  - The thesis document (LaTeX source in tfg/source/ and compiled PDF
-    tfg/MemoriaTFG.pdf) is licensed under CC BY-NC 4.0.
+  - The thesis document (LaTeX source in memoria/source/ and compiled PDF
+    memoria/Memoria.pdf) is licensed under CC BY-NC 4.0.
   - The source code (spark/ worker, scripts and pipeline; the backend
     and frontend hosted in separate repositories) is licensed under
     CC BY-NC 4.0 for academic and non-commercial use.
-  - The figures and metric reports (reports/, tfg/source/*.png) that
+  - The figures and metric reports (reports/, memoria/source/*.png) that
     contain no identifiable patient information are licensed under
     CC BY-NC 4.0.
   - The original undergraduate material in original-project/ (Memoria
@@ -57,7 +57,7 @@ Citation:
 
   Link Cladera, M., & Contestí Coll, A. (2026). Detección automática
   de nódulos pulmonares en radiografías de tórax mediante deep
-  learning. Bachelor's Thesis, Escola Politècnica Superior,
+  learning. Final project for the course of Machine Learning, Escola Politècnica Superior,
   Universitat de les Illes Balears, Palma de Mallorca, Spain.
   Supervisor: Dr. Miquel Miró Nicolau. Extended in collaboration with
   Dr. Ana Estremera Bauzá (Hospital Universitari Son Llàtzer).

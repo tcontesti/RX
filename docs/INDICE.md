@@ -22,11 +22,11 @@
 
 | # | Fichero | Descripción |
 |---|---|---|
-| 10 | [../tfg/MemoriaTFG.pdf](../tfg/MemoriaTFG.pdf) | Memoria académica compilada |
-| 11 | [../tfg/source/Memoria_v2_IEEE.tex](../tfg/source/Memoria_v2_IEEE.tex) | Fuente LaTeX (formato IEEE) |
-| 12 | [../tfg/source/Paper_definitivo.tex](../tfg/source/Paper_definitivo.tex) | Fuente del paper extendido |
-| 13 | [../tfg/source/secciones_nuevas.tex](../tfg/source/secciones_nuevas.tex) | Secciones añadidas en la extensión (YOLO26, WBF ensemble, data leakage, prototipo hospital) |
-| 14 | [../tfg/source/biblio_rectifier.bib](../tfg/source/biblio_rectifier.bib) | Bibliografía BibTeX |
+| 10 | [../memoria/Memoria.pdf](../memoria/Memoria.pdf) | Memoria académica compilada |
+| 11 | [../memoria/source/Memoria_v2_IEEE.tex](../memoria/source/Memoria_v2_IEEE.tex) | Fuente LaTeX (formato IEEE) |
+| 12 | [../memoria/source/Paper_definitivo.tex](../memoria/source/Paper_definitivo.tex) | Fuente del paper extendido |
+| 13 | [../memoria/source/secciones_nuevas.tex](../memoria/source/secciones_nuevas.tex) | Secciones añadidas en la extensión (YOLO26, WBF ensemble, data leakage, prototipo hospital) |
+| 14 | [../memoria/source/biblio_rectifier.bib](../memoria/source/biblio_rectifier.bib) | Bibliografía BibTeX |
 
 ## Código fuente
 
@@ -42,7 +42,7 @@
 
 | # | Directorio | Descripción |
 |---|---|---|
-| 20 | [../original-project/](../original-project/) | Memoria v1, notebooks, posters y CSVs de evaluación del TFG base (Marc Link Cladera + Antonio Contestí Coll, supervisor: Dr. Miquel Miró Nicolau) |
+| 20 | [../original-project/](../original-project/) | Memoria v1, notebooks, posters y CSVs de evaluación del trabajo base (Marc Link Cladera + Antonio Contestí Coll, supervisor: Dr. Miquel Miró Nicolau) |
 | 21 | [../original-project/PRACTICA_LINK_CONTESTI/](../original-project/PRACTICA_LINK_CONTESTI/) | Entrega oficial de la práctica |
 | 22 | [../original-project/poster/](../original-project/poster/) | Posters de defensa |
 

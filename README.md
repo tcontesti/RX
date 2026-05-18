@@ -1,6 +1,6 @@
 # rx-cxr-nodule-detection
 
-Material asociado al proyecto **"Detección automática de nódulos pulmonares en radiografías de tórax mediante deep learning"**, originado como Trabajo de Fin de Grado de Marc Link Cladera y Antonio Contestí Coll en la Escola Politècnica Superior de la Universitat de les Illes Balears, bajo la dirección del Dr. Miquel Miró Nicolau, y extendido como prototipo asistencial en colaboración con la Dra. Ana Estremera Bauzá (jefa del Servei de Radiologia, Hospital Universitari Son Llàtzer).
+Material asociado al proyecto **"Detección automática de nódulos pulmonares en radiografías de tórax mediante deep learning"**, originado como **trabajo final de la asignatura de Aprendizaje Automático** de Marc Link Cladera y Antonio Contestí Coll en la Escola Politècnica Superior de la Universitat de les Illes Balears, bajo la dirección del Dr. Miquel Miró Nicolau, y extendido como prototipo asistencial en colaboración con la Dra. Ana Estremera Bauzá (jefa del Servei de Radiologia, Hospital Universitari Son Llàtzer).
 
 El proyecto aborda la detección automática de nódulos pulmonares sobre radiografías de tórax combinando dos detectores complementarios (Faster R-CNN con preentrenamiento sobre VinDr-CXR y YOLOv8s) mediante un ensemble Weighted Box Fusion. La pipeline se acompaña de una auditoría sistemática del código de referencia del estado del arte (Behrendt et al., ganador del NODE21 Challenge), una cuantificación del data leakage introducido por augmentaciones offline mal agrupadas y un prototipo web operativo con módulo de validación radiológica.
 
@@ -8,8 +8,8 @@ El proyecto aborda la detección automática de nódulos pulmonares sobre radiog
 
 ```
 rx-cxr-nodule-detection/
-├── tfg/                 documento académico (LaTeX + PDF)
-│   ├── MemoriaTFG.pdf
+├── memoria/             documento académico (LaTeX + PDF)
+│   ├── Memoria.pdf
 │   ├── source/          fuente LaTeX completa
 │   └── README.md        instrucciones de compilación
 ├── docs/                documentación técnica y landing page
@@ -22,7 +22,7 @@ rx-cxr-nodule-detection/
 │   ├── pipeline/        pipeline reutilizable (data, models, training)
 │   └── README.md        cómo reproducir los experimentos
 ├── original-project/    proyecto base UIB (Marc Link + Antonio Contestí)
-│   ├── Memoria_v1.tex   memoria del TFG original
+│   ├── Memoria_v1.tex   memoria del trabajo original
 │   ├── PRACTICA_LINK_CONTESTI/   notebooks y CSVs de evaluación
 │   ├── poster/          posters de defensa
 │   └── images/          figuras de la memoria v1
@@ -37,9 +37,9 @@ Los servicios web del prototipo (backend FastAPI y frontend Vue 3) se alojan en 
 
 ## Cómo navegar este material
 
-**Si quieres leer la memoria:** abre `tfg/MemoriaTFG.pdf`.
+**Si quieres leer la memoria:** abre `memoria/Memoria.pdf`.
 
-**Si quieres compilar el documento desde fuente:** sigue `tfg/README.md`. Requiere una distribución LaTeX (TeX Live recomendado) y el archivo `biblio_rectifier.bib`.
+**Si quieres compilar el documento desde fuente:** sigue `memoria/README.md`. Requiere una distribución LaTeX (TeX Live recomendado) y el archivo `biblio_rectifier.bib`.
 
 **Si quieres entender el prototipo asistencial:** consulta `docs/PROPUESTA_ARQUITECTURA_HOSPITAL.md` y `docs/DOCUMENTACION_TECNICA.md`. La arquitectura general (frontend Vue → backend FastAPI → RabbitMQ → worker GPU) está descrita allí; los servicios desplegables están en los repositorios `cxr-detection` y `cxr-frontend`.
 
@@ -71,10 +71,11 @@ Si este trabajo te resulta útil en tu investigación, por favor cítalo como:
   title        = {Detecci\'on autom\'atica de n\'odulos pulmonares en
                   radiograf\'ias de t\'orax mediante deep learning},
   year         = {2026},
-  howpublished = {Bachelor's Thesis, Escola Polit\`ecnica Superior,
+  howpublished = {Trabajo final de la asignatura de Aprendizaje
+                  Autom\'atico, Escola Polit\`ecnica Superior,
                   Universitat de les Illes Balears},
-  note         = {Supervisor: Dr. Miquel Mir\'o Nicolau. Clinical
-                  collaboration: Dra. Ana Estremera Bauz\'a (Hospital
+  note         = {Profesor: Dr. Miquel Mir\'o Nicolau. Colaboraci\'on
+                  cl\'inica: Dra. Ana Estremera Bauz\'a (Hospital
                   Universitari Son Ll\`atzer)}
 }
 ```
@@ -82,5 +83,5 @@ Si este trabajo te resulta útil en tu investigación, por favor cítalo como:
 ## Contacto
 
 - **Antonio Contestí Coll** — `antonio.contesti1@estudiant.uib.cat`
-- **Tutor:** Dr. Miquel Miró Nicolau — `miquel.miro@uib.es`
+- **Profesor:** Dr. Miquel Miró Nicolau — `miquel.miro@uib.es`
 - **Colaboración clínica:** Dra. Ana Estremera Bauzá — Servei de Radiologia, Hospital Universitari Son Llàtzer

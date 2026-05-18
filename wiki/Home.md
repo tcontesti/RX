@@ -1,6 +1,6 @@
 # CXR Nodule Detection — Wiki
 
-Material asociado al proyecto **"Detección automática de nódulos pulmonares en radiografías de tórax mediante deep learning"**, originado como Trabajo de Fin de Grado en la Escola Politècnica Superior de la Universitat de les Illes Balears (curso 2025–2026) y extendido como prototipo asistencial en colaboración con el Hospital Universitari Son Llàtzer.
+Material asociado al proyecto **"Detección automática de nódulos pulmonares en radiografías de tórax mediante deep learning"**, originado como trabajo final de la asignatura de Aprendizaje Automático en la Escola Politècnica Superior de la Universitat de les Illes Balears (curso 2025–2026) y extendido como prototipo asistencial en colaboración con el Hospital Universitari Son Llàtzer.
 
 - **Autores:** Marc Link Cladera y Antonio Contestí Coll — `antonio.contesti1@estudiant.uib.cat`
 - **Tutor:** Dr. Miquel Miró Nicolau — `miquel.miro@uib.es`

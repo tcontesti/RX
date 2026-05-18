@@ -10,13 +10,13 @@ El proyecto se desarrolla a tres bandas: una dirección académica en la UIB, un
 
 | Persona | Rol |
 |---|---|
-| **Dr. Miquel Miró Nicolau** | Tutor del Trabajo de Fin de Grado. Profesor de la EPS. Define los objetivos académicos, supervisa la metodología y aprueba la memoria. |
-| **Marc Link Cladera** | Coautor del TFG original. Responsable de la implementación inicial (clasificación binaria con EfficientNet, RetinaNet y baseline Faster R-CNN sobre NODE21). |
-| **Antonio Contestí Coll** | Coautor del TFG original; responsable de la extensión actual (auditoría sistemática del estado del arte, detector YOLO, ensemble WBF, prototipo asistencial). Mantiene el repositorio y desarrolla la integración hospitalaria. |
+| **Dr. Miquel Miró Nicolau** | Tutor del trabajo final de la asignatura de Aprendizaje Automático. Profesor de la EPS. Define los objetivos académicos, supervisa la metodología y aprueba la memoria. |
+| **Marc Link Cladera** | Coautor del trabajo original. Responsable de la implementación inicial (clasificación binaria con EfficientNet, RetinaNet y baseline Faster R-CNN sobre NODE21). |
+| **Antonio Contestí Coll** | Coautor del trabajo original; responsable de la extensión actual (auditoría sistemática del estado del arte, detector YOLO, ensemble WBF, prototipo asistencial). Mantiene el repositorio y desarrolla la integración hospitalaria. |
 
 **Contacto académico:** `miquel.miro@uib.es`.
 
-**Origen:** el trabajo nace como Trabajo de Fin de Grado de Marc Link Cladera y Antonio Contestí Coll en la Escola Politècnica Superior de la UIB. La versión original (clasificación binaria de nódulos con EfficientNet-B0 multicanal) está completa y conservada en [`original-project/`](../original-project/). La extensión actual (detección + clasificación con ensemble + auditoría del estado del arte + prototipo web) se realiza tras la defensa, manteniendo la misma dirección académica.
+**Origen:** el trabajo nace como trabajo final de la asignatura de Aprendizaje Automático de Marc Link Cladera y Antonio Contestí Coll en la Escola Politècnica Superior de la UIB. La versión original (clasificación binaria de nódulos con EfficientNet-B0 multicanal) está completa y conservada en [`original-project/`](../original-project/). La extensión actual (detección + clasificación con ensemble + auditoría del estado del arte + prototipo web) se realiza tras la defensa, manteniendo la misma dirección académica.
 
 ## ii · Validación clínica — IB-Salut · Hospital Universitari Son Llàtzer
 

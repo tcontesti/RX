@@ -81,7 +81,7 @@ YOLO26s no supera a YOLOv8s en este dataset, probablemente porque su regularizac
 
 Ganancia frente al mejor modelo individual: +2.6 puntos NODE21, +5.3 puntos Sens@0.25 FP. Es el modelo desplegado en producción en el prototipo asistencial.
 
-## EfficientNet-B0 multicanal (clasificación binaria, TFG original)
+## EfficientNet-B0 multicanal (clasificación binaria, trabajo original)
 
 Heredado del proyecto base UIB. **No forma parte del pipeline de producción**, pero se documenta por trazabilidad.
 
@@ -94,7 +94,7 @@ Heredado del proyecto base UIB. **No forma parte del pipeline de producción**, 
 | Accuracy | ~ 0.88 (split nuestro, no comparable directamente con NODE21) |
 | Notebook | [`original-project/PRACTICA_LINK_CONTESTI/SCRIPTS_MODELS_I_AVALUACIONS_MODELS/CLASSIFICACIO/node21_v1.2_cs.ipynb`](../original-project/PRACTICA_LINK_CONTESTI/SCRIPTS_MODELS_I_AVALUACIONS_MODELS/CLASSIFICACIO/node21_v1.2_cs.ipynb) |
 
-Fue el modelo de referencia del TFG inicial, antes de pivotar a detección + ensemble.
+Fue el modelo de referencia del trabajo inicial, antes de pivotar a detección + ensemble.
 
 ## Comparativa rápida
 

@@ -20,10 +20,10 @@ Bajo las condiciones siguientes:
 
 | Componente | Licencia | Notas |
 |---|---|---|
-| Memoria académica (`tfg/`) | CC BY-NC 4.0 | LaTeX source + PDF compilado |
+| Memoria académica (`memoria/`) | CC BY-NC 4.0 | LaTeX source + PDF compilado |
 | Worker GPU, scripts y pipeline (`spark/`) | CC BY-NC 4.0 | Sólo uso académico y no comercial |
 | Documentación (`docs/`) | CC BY-NC 4.0 | Documentos técnicos y landing page |
-| Reportes de evaluación (`reports/`, `tfg/source/*.png`) | CC BY-NC 4.0 | Cifras y figuras propias |
+| Reportes de evaluación (`reports/`, `memoria/source/*.png`) | CC BY-NC 4.0 | Cifras y figuras propias |
 | Proyecto base UIB (`original-project/`) | CC BY-NC 4.0 | Por Marc Link Cladera y Antonio Contestí Coll, supervisor Dr. Miquel Miró Nicolau |
 
 ## Material de terceros
@@ -65,7 +65,7 @@ El material referenciado y evaluado por este trabajo conserva su licencia origin
   title        = {Detecci\'on autom\'atica de n\'odulos pulmonares en
                   radiograf\'ias de t\'orax mediante deep learning},
   year         = {2026},
-  howpublished = {Bachelor's Thesis, Escola Polit\`ecnica Superior,
+  howpublished = {Final project for the course of Machine Learning, Escola Polit\`ecnica Superior,
                   Universitat de les Illes Balears},
   note         = {Supervisor: Dr. Miquel Mir\'o Nicolau. Clinical
                   collaboration: Dra. Ana Estremera Bauz\'a (Hospital
@@ -75,7 +75,7 @@ El material referenciado y evaluado por este trabajo conserva su licencia origin
 
 ### Texto plano
 
-> Link Cladera, M., & Contestí Coll, A. (2026). *Detección automática de nódulos pulmonares en radiografías de tórax mediante deep learning*. Trabajo de Fin de Grado, Escola Politècnica Superior, Universitat de les Illes Balears, Palma de Mallorca. Supervisor: Dr. Miquel Miró Nicolau. Colaboración clínica: Dra. Ana Estremera Bauzá (Hospital Universitari Son Llàtzer).
+> Link Cladera, M., & Contestí Coll, A. (2026). *Detección automática de nódulos pulmonares en radiografías de tórax mediante deep learning*. trabajo final de la asignatura de Aprendizaje Automático, Escola Politècnica Superior, Universitat de les Illes Balears, Palma de Mallorca. Supervisor: Dr. Miquel Miró Nicolau. Colaboración clínica: Dra. Ana Estremera Bauzá (Hospital Universitari Son Llàtzer).
 
 ## Citas obligatorias derivadas
 
