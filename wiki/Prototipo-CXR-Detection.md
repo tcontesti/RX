@@ -90,23 +90,38 @@ Seis tablas MySQL:
 | Render + transferencia respuesta | 100–500 ms |
 | **Total end-to-end** | **2–3 s** |
 
+## Código fuente
+
+El código completo del prototipo está incluido en este mismo repositorio, además de los repositorios espejo desplegables que se mantienen sincronizados:
+
+| Componente | Ubicación en este repo | Espejo desplegable |
+|---|---|---|
+| Backend FastAPI | [`backend/`](../backend/) | <https://github.com/tcontesti/cxr-detection> |
+| Frontend Vue 3 | [`frontend/`](../frontend/) | <https://github.com/tcontesti/cxr-frontend> |
+| Worker GPU | [`spark/worker/`](../spark/worker/) | servidor hospital (no público) |
+| Scripts entrenamiento | [`spark/scripts/`](../spark/scripts/) | servidor hospital |
+| Pipeline reutilizable | [`spark/pipeline/`](../spark/pipeline/) | servidor hospital |
+
 ## Para desplegarlo localmente
 
-```bash
-git clone https://github.com/tcontesti/cxr-detection
-cd cxr-detection
-cp .env.example .env        # ajustar credenciales
-docker compose up -d
-```
+Backend (Docker Compose):
 
 ```bash
-git clone https://github.com/tcontesti/cxr-frontend
-cd cxr-frontend
+cd backend
+cp .env.example .env        # ajustar credenciales (placeholders CHANGE_ME_*)
+docker compose up -d --build
+# Verificar: curl http://localhost:9020/api/health
+```
+
+Frontend (Vite dev server):
+
+```bash
+cd frontend
 npm install
-npm run dev                  # abre http://localhost:5177
+npm run dev                 # abre http://localhost:5175
 ```
 
-El worker corre sobre la Spark; ver [[Hardware-Spark-GPU]] para la instalación del servicio.
+El worker corre sobre la Spark; ver [[Hardware-Spark-GPU]] para la instalación del servicio systemd.
 
 ## Hoja de ruta de producción
 

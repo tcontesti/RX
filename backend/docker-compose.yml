@@ -1,0 +1,135 @@
+services:
+
+  mysql:
+    image: mysql:8.0
+    container_name: cxr-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: cxr_detection
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./mysql/init:/docker-entrypoint-initdb.d:ro
+      - ./mysql/my.cnf:/etc/mysql/conf.d/custom.cnf:ro
+    networks:
+      - backend_net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: cxr-rabbitmq
+    restart: always
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS}
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+      - ./rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
+    ports:
+      - "5672:5672"
+      - "15674:15672"
+    networks:
+      - frontend_net
+      - backend_net
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
+
+  cxr-svc:
+    build:
+      context: .
+      dockerfile: services/cxr-svc/Dockerfile
+    container_name: cxr-backend
+    restart: always
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      DB_URL: mysql+pymysql://${MYSQL_USER}:${MYSQL_PASSWORD}@mysql:3306/cxr_detection?charset=utf8mb4
+      RABBITMQ_URL: amqp://${RABBITMQ_USER}:${RABBITMQ_PASS}@rabbitmq:5672/
+      ENVIRONMENT: ${ENVIRONMENT}
+      LOG_LEVEL: ${LOG_LEVEL}
+      CORS_ORIGINS: ${CORS_ORIGINS}
+      MAX_UPLOAD_SIZE_MB: ${MAX_UPLOAD_SIZE_MB}
+    ports:
+      - "9020:8000"
+    networks:
+      - frontend_net
+      - backend_net
+    depends_on:
+      mysql:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+  result-consumer:
+    build:
+      context: .
+      dockerfile: services/cxr-svc/Dockerfile
+    container_name: cxr-result-consumer
+    restart: always
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    command: ["python", "-m", "app.consumers.result_consumer"]
+    environment:
+      DB_URL: mysql+pymysql://${MYSQL_USER}:${MYSQL_PASSWORD}@mysql:3306/cxr_detection?charset=utf8mb4
+      RABBITMQ_URL: amqp://${RABBITMQ_USER}:${RABBITMQ_PASS}@rabbitmq:5672/
+      LOG_LEVEL: ${LOG_LEVEL}
+    networks:
+      - backend_net
+    depends_on:
+      mysql:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: cxr-nginx
+    restart: always
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /var/cache/nginx
+      - /var/run
+    ports:
+      - "8090:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      - frontend_net
+    depends_on:
+      cxr-svc:
+        condition: service_healthy
+
+volumes:
+  mysql_data:
+  rabbitmq_data:
+
+networks:
+  frontend_net:
+    driver: bridge
+  backend_net:
+    driver: bridge
+    internal: true

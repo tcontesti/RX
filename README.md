@@ -16,6 +16,14 @@ rx-cxr-nodule-detection/
 │   ├── index.html       página de presentación (GitHub Pages)
 │   ├── assets/
 │   └── *.md             documentación arquitectura, bugs, propuesta hospital
+├── backend/             backend FastAPI containerizado del prototipo
+│   ├── docker-compose.yml
+│   ├── services/cxr-svc/
+│   └── README.md
+├── frontend/            frontend Vue 3 + Tailwind del prototipo
+│   ├── src/
+│   ├── vite.config.js
+│   └── README.md
 ├── spark/               código que corre sobre la GPU
 │   ├── worker/          servicio de inferencia (RabbitMQ + GPU)
 │   ├── scripts/         entrenamiento, evaluación y preprocesado
@@ -30,7 +38,7 @@ rx-cxr-nodule-detection/
 └── wiki/                wiki del proyecto (10 páginas)
 ```
 
-Los servicios web del prototipo (backend FastAPI y frontend Vue 3) se alojan en repositorios independientes:
+Los servicios web del prototipo (`backend/` y `frontend/`) están incluidos en este repositorio como copia documental. Las versiones desplegables se mantienen en repositorios espejo independientes con el mismo contenido:
 
 - Backend: <https://github.com/tcontesti/cxr-detection>
 - Frontend: <https://github.com/tcontesti/cxr-frontend>
@@ -41,7 +49,11 @@ Los servicios web del prototipo (backend FastAPI y frontend Vue 3) se alojan en 
 
 **Si quieres compilar el documento desde fuente:** sigue `memoria/README.md`. Requiere una distribución LaTeX (TeX Live recomendado) y el archivo `biblio_rectifier.bib`.
 
-**Si quieres entender el prototipo asistencial:** consulta `docs/PROPUESTA_ARQUITECTURA_HOSPITAL.md` y `docs/DOCUMENTACION_TECNICA.md`. La arquitectura general (frontend Vue → backend FastAPI → RabbitMQ → worker GPU) está descrita allí; los servicios desplegables están en los repositorios `cxr-detection` y `cxr-frontend`.
+**Si quieres entender el prototipo asistencial:** consulta `docs/PROPUESTA_ARQUITECTURA_HOSPITAL.md` y `docs/DOCUMENTACION_TECNICA.md`. La arquitectura general (frontend Vue → backend FastAPI → RabbitMQ → worker GPU) está descrita allí.
+
+**Si quieres desplegar el backend en local:** sigue [`backend/README.md`](backend/README.md). Requiere Docker Compose; arranca MySQL, RabbitMQ, Nginx y el backend FastAPI con un único `docker compose up -d --build`.
+
+**Si quieres arrancar el frontend en local:** sigue [`frontend/README.md`](frontend/README.md). Requiere Node 20+ y `npm install && npm run dev` (puerto 5175, con proxy automático al backend en 9020).
 
 **Si quieres reproducir un experimento concreto:** consulta `spark/README.md` y la página *Experimentos* del wiki. Cada experimento documenta su script, su checkpoint y la métrica esperada.
 
