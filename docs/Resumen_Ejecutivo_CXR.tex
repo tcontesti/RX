@@ -21,7 +21,7 @@
 
 \setlength{\parindent}{0pt}
 \setlength{\parskip}{2pt}
-\linespread{0.92}
+\linespread{0.90}
 
 \pagestyle{empty}
 
@@ -48,7 +48,7 @@
 
 \section*{1. Justificación clínica}
 
-El \textbf{cáncer de pulmón es la primera causa de mortalidad por cáncer a nivel mundial}, con supervivencia a cinco años inferior al 20\,\% en estadios avanzados frente al 60\,\% cuando se detecta de forma temprana. Los nódulos pulmonares son los indicadores precoces más relevantes, y la \emph{radiografía de tórax} (CXR) es el estudio de imagen más solicitado en atención primaria y urgencias. Sin embargo, su detección en CXR es notoriamente difícil: estudios clínicos reportan tasas de falsos negativos del 20--50\,\% por parte de radiólogos, ya que los nódulos pueden ser pequeños ($<$10\,mm), estar superpuestos con costillas y clavículas, o quedar camuflados en el parénquima. En el Hospital Universitari Son Llàtzer la presión asistencial sobre el Servicio de Radiología hace especialmente valioso disponer de una \textbf{segunda lectura algorítmica}. El sistema propuesto localiza nódulos en \textbf{menos de tres segundos} y permite al radiólogo validar, corregir y anotar los resultados, integrándose en su flujo de trabajo habitual.
+El \textbf{cáncer de pulmón es la primera causa de mortalidad por cáncer a nivel mundial}, con supervivencia a cinco años inferior al 20\,\% en estadios avanzados frente al 60\,\% cuando se detecta de forma temprana. Los nódulos pulmonares son los indicadores precoces más relevantes, y la \emph{radiografía de tórax} (CXR) es el estudio de imagen más solicitado en atención primaria y urgencias. Su detección en CXR es notoriamente difícil: estudios clínicos reportan tasas de falsos negativos del 20--50\,\% incluso por radiólogos experimentados. \textbf{Pero la primera lectura de una CXR no siempre la realiza un radiólogo}: en Urgencias, Medicina Interna, guardias hospitalarias nocturnas y Atención Primaria, la decisión clínica inicial (alta, ingreso, ampliación con TC, derivación) la toma un médico no radiólogo, con menor entrenamiento específico en imagen. El sistema se concibe como un \textbf{asistente de cribado dual}: \emph{segunda lectura algorítmica} para el radiólogo y \textbf{primera lectura asistida} para el médico no radiólogo en tiempo real durante una guardia o consulta. Localiza nódulos en \textbf{menos de tres segundos}, integrándose tanto en el flujo radiológico estándar como en el flujo asistencial no programado, y permite al clínico validar, corregir y anotar los resultados.
 
 \section*{2. Innovación propuesta}
 
@@ -77,7 +77,7 @@ La aportación más original es la \textbf{combinación de auditoría metodológ
 
 \section*{6. Impacto económico y social}
 
-\textbf{Para el paciente:} reducción del riesgo de falsos negativos en CXR (actualmente 20--50\,\%), aceleración del triaje en sospecha de cáncer de pulmón y \textbf{segunda lectura algorítmica} complementaria al criterio del radiólogo. \textbf{Para el sistema sanitario:} alivio de la presión asistencial sobre el Servicio de Radiología del Hospital Universitari Son Llàtzer, con latencia $<$3\,s compatible con el flujo radiológico estándar y preparado para integración PACS por DICOM C-STORE. \textbf{Para la comunidad de investigación:} la publicación abierta del protocolo de auditoría de \emph{data leakage}, del análisis crítico del código del estado del arte y del hallazgo del \emph{score threshold} cubren huecos identificados en la literatura sobre \emph{reproducibility} en IA médica. \textbf{Para la sociedad:} código y documentación publicados en GitHub bajo licencia abierta.
+\textbf{Para el paciente:} reducción del riesgo de falsos negativos en CXR (actualmente 20--50\,\%) y aceleración del triaje en sospecha de cáncer de pulmón. \textbf{Para el radiólogo:} \emph{segunda lectura algorítmica} complementaria que prioriza estudios con sospecha y reduce la sobrecarga de informado masivo. \textbf{Para el médico no radiólogo} (Urgencias, Medicina Interna, guardias hospitalarias, Atención Primaria): \textbf{primera lectura asistida} en tiempo real, que aporta una localización visual del hallazgo al profesional que toma la decisión clínica inicial cuando no hay radiólogo de presencia disponible. \textbf{Para el sistema sanitario:} alivio de la presión asistencial sobre el Servicio de Radiología del HUSL y reducción del retraso diagnóstico en horario no programado, con latencia $<$3\,s compatible con el flujo radiológico estándar y preparado para integración PACS por DICOM C-STORE. \textbf{Para la comunidad de investigación y la sociedad:} publicación abierta del protocolo de auditoría de \emph{data leakage}, del análisis crítico del código del estado del arte y del hallazgo del \emph{score threshold}, cubriendo huecos identificados en la literatura sobre \emph{reproducibility} en IA médica; código y documentación publicados en GitHub bajo licencia abierta.
 
 \section*{7. Cooperación UIB · IB-Salut · línea internacional}
 
