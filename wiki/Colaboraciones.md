@@ -2,7 +2,7 @@
 
 [← Home](Home.md)
 
-El proyecto se desarrolla en dos planos: una dirección académica en la UIB (donde se realiza todo el trabajo metodológico, de auditoría y de implementación) y una referencia internacional auditada (TU Hamburg). El despliegue hospitalario está previsto sobre un Servicio de Radiología del IB-Salut, con la validación clínica prospectiva como fase posterior.
+El proyecto se desarrolla principalmente desde la UIB (dirección académica + implementación), con Antonio Contestí Coll articulando además el puente con el IB-Salut a través de su rol como Técnico de Gestión de Sistemas y Tecnologías de las Telecomunicaciones del Hospital Universitario Son Llàtzer. La referencia internacional auditada es TU Hamburg. La validación clínica prospectiva con un Servicio asistencial concreto del HUSL queda como fase posterior.
 
 ## i · Dirección académica — UIB
 
@@ -11,8 +11,8 @@ El proyecto se desarrolla en dos planos: una dirección académica en la UIB (do
 | Persona | Rol |
 |---|---|
 | **Dr. Miquel Miró Nicolau** | Tutor del trabajo final de la asignatura de Aprendizaje Automático. Profesor de la EPS. Define los objetivos académicos, supervisa la metodología y aprueba la memoria. |
-| **Marc Link Cladera** | Coautor del trabajo original. Responsable de la implementación inicial (clasificación binaria con EfficientNet, RetinaNet y baseline Faster R-CNN sobre NODE21). |
-| **Antonio Contestí Coll** | Coautor del trabajo original; responsable de la extensión actual (auditoría sistemática del estado del arte, detector YOLO, ensemble WBF, prototipo asistencial). Mantiene el repositorio y desarrolla la integración hospitalaria. |
+| **Marc Link Cladera** | Estudiante de Ingeniería Informática (UIB · EPS), defensa de TFG prevista para junio de 2026. Coautor del trabajo original; responsable de la implementación inicial (clasificación binaria con EfficientNet, RetinaNet y baseline Faster R-CNN sobre NODE21). |
+| **Antonio Contestí Coll** | Estudiante de Ingeniería Informática (UIB · EPS), defensa de TFG prevista para junio de 2026; Técnico de Gestión de Sistemas y Tecnologías de las Telecomunicaciones, Hospital Universitario Son Llàtzer (IB-Salut). Coautor del trabajo original; responsable de la extensión actual (auditoría sistemática del estado del arte, detector YOLO, ensemble WBF, prototipo asistencial). Mantiene el repositorio y desarrolla la integración hospitalaria. |
 
 **Contacto académico:** `miquel.miro@uib.es`.
 
