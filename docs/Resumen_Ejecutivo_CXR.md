@@ -5,8 +5,8 @@
 
 **Proponentes:**
 - Dr. Miquel Miró Nicolau (profesor ayudante doctor, Dept. Ciencias Matemáticas e Informática, EPS-UIB)
-- Marc Link Cladera (coautor del proyecto base UIB)
-- Antonio Contestí Coll (graduado, EPS-UIB)
+- Marc Link Cladera (estudiante de Ingeniería Informática, EPS-UIB, TFG junio 2026)
+- Antonio Contestí Coll (estudiante de Ingeniería Informática, EPS-UIB, TFG junio 2026; Técnico de Gestión de Sistemas y Tecnologías de las Telecomunicaciones, Hospital Universitario Son Llàtzer, IB-Salut)
 
 **Origen:** trabajo final de la asignatura de Aprendizaje Automático EPS-UIB (curso 2024–2025, Grado en Ingeniería Informática) — desarrollo en curso como prototipo hospitalario.
 
