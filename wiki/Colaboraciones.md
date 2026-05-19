@@ -2,7 +2,7 @@
 
 [← Home](Home.md)
 
-El proyecto se desarrolla a tres bandas: una dirección académica en la UIB, una colaboración clínica con el Hospital Universitari Son Llàtzer y una referencia internacional auditada (TU Hamburg). El reparto de responsabilidades y la naturaleza de cada vínculo se documenta aquí.
+El proyecto se desarrolla en dos planos: una dirección académica en la UIB (donde se realiza todo el trabajo metodológico, de auditoría y de implementación) y una referencia internacional auditada (TU Hamburg). El despliegue hospitalario está previsto sobre un Servicio de Radiología del IB-Salut, con la validación clínica prospectiva como fase posterior.
 
 ## i · Dirección académica — UIB
 
@@ -18,24 +18,18 @@ El proyecto se desarrolla a tres bandas: una dirección académica en la UIB, un
 
 **Origen:** el trabajo nace como trabajo final de la asignatura de Aprendizaje Automático de Marc Link Cladera y Antonio Contestí Coll en la Escola Politècnica Superior de la UIB. La versión original (clasificación binaria de nódulos con EfficientNet-B0 multicanal) está completa y conservada en [`original-project/`](../original-project/). La extensión actual (detección + clasificación con ensemble + auditoría del estado del arte + prototipo web) se realiza tras la defensa, manteniendo la misma dirección académica.
 
-## ii · Validación clínica — IB-Salut · Hospital Universitari Son Llàtzer
+## ii · Despliegue hospitalario previsto — IB-Salut
 
-**Servei de Radiologia, Hospital Universitari Son Llàtzer** (IB-Salut, Govern de les Illes Balears).
+El sistema está diseñado para integrarse en un **Servicio de Radiología hospitalario del IB-Salut**, manteniendo el flujo de trabajo asistencial estándar (radiólogo, residente, telerradiología) y con preparación para integración PACS por DICOM C-STORE y autenticación corporativa OIDC (Keycloak).
 
-| Persona | Rol |
-|---|---|
-| **Dra. Ana Estremera Rodrigo** | Jefa del Servei de Radiologia del Hospital Universitari Son Llàtzer. Aporta el criterio clínico que enmarca el desarrollo del prototipo, define los requisitos del módulo de validación radiológica y guía la propuesta de integración con PACS y con el flujo de trabajo asistencial. |
+**Trabajo previsto en esta fase:**
 
-**Contacto:** vía Servei de Radiologia, Hospital Universitari Son Llàtzer. Camí de Son Llàtzer, s/n, 07198 Palma.
-
-**Naturaleza de la colaboración:**
-
-- Validación del prototipo sobre casuística clínica anonimizada.
-- Definición de los flujos de uso reales (radiólogo, residente, telerradiología).
-- Identificación de los requisitos no funcionales del despliegue (cumplimiento ENS, integración OIDC, auditoría con SHA-256 chained logs).
+- Validación del prototipo sobre casuística clínica anonimizada del centro receptor.
+- Definición operativa de los flujos de uso reales (informado masivo, urgencia, segunda lectura) con el equipo asistencial del Servicio que finalmente aloje el piloto.
+- Cumplimiento de los requisitos no funcionales del despliegue (ENS, OIDC, auditoría con SHA-256 chained logs).
 - Aportación del marco regulatorio aplicable (RGPD, Ley 41/2002 de autonomía del paciente, marcado CE como software de diagnóstico).
 
-La colaboración se documenta operativamente en [`docs/PROPUESTA_ARQUITECTURA_HOSPITAL.md`](../docs/PROPUESTA_ARQUITECTURA_HOSPITAL.md), con el diseño completo para llevar el prototipo a un piloto clínico productivo.
+**Estado actual:** la colaboración formal con un Servicio asistencial concreto está pendiente de formalización y supeditada a la aprobación del protocolo por el Comité de Ética asistencial correspondiente. El diseño completo del despliegue hospitalario se documenta en [`docs/PROPUESTA_ARQUITECTURA_HOSPITAL.md`](../docs/PROPUESTA_ARQUITECTURA_HOSPITAL.md).
 
 ## iii · Referencia internacional — TU Hamburg
 

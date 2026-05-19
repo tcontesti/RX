@@ -4,10 +4,9 @@
 **Categoría:** Inteligencia artificial y datos masivos (big data)
 
 **Proponentes:**
-- Antonio Contesti Coll (estudiante/graduado, EPS-UIB)
-- Marc Link Cladera (proyecto base UIB, coautor)
-- Dr. Miquel Miró Nicolau (supervisor académico UIB)
-- Dra. Ana Estremera Rodrigo (jefa del Servicio de Radiología, Hospital Universitari Son Llàtzer, IB-Salut)
+- Dr. Miquel Miró Nicolau (profesor ayudante doctor, Dept. Ciencias Matemáticas e Informática, EPS-UIB)
+- Marc Link Cladera (coautor del proyecto base UIB)
+- Antonio Contestí Coll (graduado, EPS-UIB)
 
 **Origen:** trabajo final de la asignatura de Aprendizaje Automático EPS-UIB (curso 2024–2025, Grado en Ingeniería Informática) — desarrollo en curso como prototipo hospitalario.
 
@@ -69,9 +68,9 @@ Los scores corresponden al fold 0 de la partición `StratifiedGroupKFold` sobre 
 
 El proyecto nace de la articulación entre tres roles complementarios:
 
-- **UIB (Escola Politècnica Superior)** — El **Dr. Miquel Miró Nicolau** aporta la dirección académica original del trabajo y el marco metodológico. **Marc Link Cladera** y **Antonio Contesti Coll** son coautores del proyecto base UIB (modelos de clasificación y detección inicial). Antonio Contesti lidera el desarrollo actual del prototipo hospitalario completo (backend, frontend, worker, módulo de validación) y la auditoría crítica del estado del arte.
+- **UIB (Escola Politècnica Superior)** — El **Dr. Miquel Miró Nicolau**, profesor ayudante doctor del Departamento de Ciencias Matemáticas e Informática (línea de eXplainable AI), aporta la dirección académica original del trabajo y el marco metodológico. **Marc Link Cladera** y **Antonio Contestí Coll** son coautores del proyecto base UIB (modelos de clasificación y detección inicial). Antonio Contestí lidera el desarrollo actual del prototipo hospitalario completo (backend, frontend, worker, módulo de validación) y la auditoría crítica del estado del arte.
 
-- **IB-Salut, Hospital Universitari Son Llàtzer** — La **Dra. Ana Estremera Rodrigo**, jefa del Servicio de Radiología, aporta el conocimiento clínico, la validación del flujo de trabajo radiológico, los requisitos funcionales del prototipo (interfaz, casos de uso, integración con PACS) y la perspectiva del impacto real en consulta. La colaboración incluye el codiseño del módulo de validación y anotación.
+- **Despliegue hospitalario previsto (IB-Salut)** — La arquitectura del sistema (worker GPU desacoplado, integración PACS por DICOM C-STORE, módulo de validación radiológica) está diseñada para su despliegue en un servicio de radiología hospitalario. La colaboración formal con el HUSL para validación clínica prospectiva queda contemplada como siguiente fase, una vez aprobado el protocolo por el Comité de Ética asistencial correspondiente.
 
 ## 7. Madurez del proyecto
 

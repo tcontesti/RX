@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CXR Nodule Detection — Detección automática de nódulos pulmonares · UIB & Son Llàtzer</title>
-<meta name="description" content="Detección automática de nódulos pulmonares en radiografías de tórax mediante deep learning. Trabajo de Marc Link Cladera y Antonio Contestí Coll en la UIB, extendido como prototipo asistencial en colaboración con el Hospital Universitari Son Llàtzer.">
+<meta name="description" content="Detección automática de nódulos pulmonares en radiografías de tórax mediante deep learning. Trabajo de Marc Link Cladera y Antonio Contestí Coll en la UIB, bajo dirección del Dr. Miquel Miró Nicolau, extendido como prototipo asistencial preparado para su despliegue hospitalario.">
 <meta name="author" content="Marc Link Cladera, Antonio Contestí Coll">
 <meta property="og:title" content="CXR Nodule Detection — Detección automática de nódulos pulmonares en radiografías de tórax">
 <meta property="og:description" content="Auditoría sistemática del estado del arte, cuantificación del data leakage y ensemble eficiente Faster R-CNN + YOLOv8 + WBF. Prototipo asistencial validado por radiología.">
@@ -195,9 +195,9 @@
         <div class="text-ink-500 text-xs mt-1 font-mono">miquel.miro@uib.es</div>
       </div>
       <div>
-        <div class="text-[10px] uppercase tracking-widest-2 text-ink-400 mb-2">Colaboración clínica</div>
-        <div class="text-ink-900">Dra. Ana Estremera Rodrigo</div>
-        <div class="text-ink-500 text-xs mt-1">Servei de Radiologia · H. Son Llàtzer</div>
+        <div class="text-[10px] uppercase tracking-widest-2 text-ink-400 mb-2">Despliegue previsto</div>
+        <div class="text-ink-900">Servicio de Radiología hospitalario</div>
+        <div class="text-ink-500 text-xs mt-1">Validación clínica en fase posterior</div>
       </div>
       <div>
         <div class="text-[10px] uppercase tracking-widest-2 text-ink-400 mb-2">Referencia internacional</div>
@@ -417,12 +417,12 @@
       <div class="grid grid-cols-12 gap-6 sm:gap-10 py-10 rule-top items-start">
         <div class="col-span-3 sm:col-span-2 index-num text-[11px] tracking-wider text-ink-400">ii</div>
         <div class="col-span-9 sm:col-span-3">
-          <div class="text-[11px] uppercase tracking-widest-2 text-ink-400 mb-2">Validación clínica</div>
-          <div class="text-lg font-medium text-ink">H. Son Llàtzer</div>
+          <div class="text-[11px] uppercase tracking-widest-2 text-ink-400 mb-2">Despliegue hospitalario</div>
+          <div class="text-lg font-medium text-ink">Fase prevista</div>
         </div>
         <div class="col-span-12 sm:col-span-7">
           <p class="text-ink-600 leading-relaxed">
-            <strong class="font-medium text-ink">Dra. Ana Estremera Rodrigo</strong>, jefa del Servei de Radiologia del Hospital Universitari Son Llàtzer (IB-Salut), valida el prototipo asistencial sobre casuística clínica real. La colaboración determina los requisitos del módulo de validación radiológica y guía la propuesta de integración con PACS y autenticación Keycloak.
+            La arquitectura del sistema (worker GPU desacoplado, integración PACS por DICOM C-STORE, módulo de validación radiológica, autenticación Keycloak) está diseñada para su despliegue en un servicio de radiología hospitalario. La validación clínica prospectiva con un servicio asistencial del IB-Salut queda contemplada como siguiente fase, supeditada a la aprobación del Comité de Ética asistencial correspondiente.
           </p>
         </div>
       </div>
@@ -567,9 +567,7 @@
   <span class="text-ink-400">year</span>         = "2026",
   <span class="text-ink-400">howpublished</span> = "Final project for the course of Machine Learning, Escola Politècnica
                   Superior, Universitat de les Illes Balears",
-  <span class="text-ink-400">note</span>         = "Supervisor: Dr. Miquel Miró Nicolau.
-                  Clinical collaboration: Dra. Ana Estremera Rodrigo,
-                  Hospital Universitari Son Llàtzer."
+  <span class="text-ink-400">note</span>         = "Supervisor: Dr. Miquel Miró Nicolau (UIB)."
 }</div>
       </div>
     </div>

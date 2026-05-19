@@ -67,15 +67,13 @@ El material referenciado y evaluado por este trabajo conserva su licencia origin
   year         = {2026},
   howpublished = {Final project for the course of Machine Learning, Escola Polit\`ecnica Superior,
                   Universitat de les Illes Balears},
-  note         = {Supervisor: Dr. Miquel Mir\'o Nicolau. Clinical
-                  collaboration: Dra. Ana Estremera Rodrigo\'a (Hospital
-                  Universitari Son Ll\`atzer)}
+  note         = {Supervisor: Dr. Miquel Mir\'o Nicolau (UIB).}
 }
 ```
 
 ### Texto plano
 
-> Link Cladera, M., & Contestí Coll, A. (2026). *Detección automática de nódulos pulmonares en radiografías de tórax mediante deep learning*. trabajo final de la asignatura de Aprendizaje Automático, Escola Politècnica Superior, Universitat de les Illes Balears, Palma de Mallorca. Supervisor: Dr. Miquel Miró Nicolau. Colaboración clínica: Dra. Ana Estremera Rodrigo (Hospital Universitari Son Llàtzer).
+> Link Cladera, M., & Contestí Coll, A. (2026). *Detección automática de nódulos pulmonares en radiografías de tórax mediante deep learning*. Trabajo final de la asignatura de Aprendizaje Automático, Escola Politècnica Superior, Universitat de les Illes Balears, Palma de Mallorca. Supervisor: Dr. Miquel Miró Nicolau (UIB).
 
 ## Citas obligatorias derivadas
 

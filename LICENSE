@@ -57,7 +57,8 @@ Citation:
 
   Link Cladera, M., & Contestí Coll, A. (2026). Detección automática
   de nódulos pulmonares en radiografías de tórax mediante deep
-  learning. Final project for the course of Machine Learning, Escola Politècnica Superior,
-  Universitat de les Illes Balears, Palma de Mallorca, Spain.
-  Supervisor: Dr. Miquel Miró Nicolau. Extended in collaboration with
-  Dr. Ana Estremera Rodrigo (Hospital Universitari Son Llàtzer).
+  learning. Final project for the course of Machine Learning, Escola
+  Politècnica Superior, Universitat de les Illes Balears, Palma de
+  Mallorca, Spain. Supervisor: Dr. Miquel Miró Nicolau. Extended
+  into a hospital-ready prototype; clinical validation planned in a
+  subsequent phase.

@@ -1,15 +1,15 @@
 # CXR Nodule Detection — Wiki
 
-Material asociado al proyecto **"Detección automática de nódulos pulmonares en radiografías de tórax mediante deep learning"**, originado como trabajo final de la asignatura de Aprendizaje Automático en la Escola Politècnica Superior de la Universitat de les Illes Balears (curso 2025–2026) y extendido como prototipo asistencial en colaboración con el Hospital Universitari Son Llàtzer.
+Material asociado al proyecto **"Detección automática de nódulos pulmonares en radiografías de tórax mediante deep learning"**, originado como trabajo final de la asignatura de Aprendizaje Automático en la Escola Politècnica Superior de la Universitat de les Illes Balears (curso 2025–2026) y extendido como prototipo asistencial preparado para su despliegue en un servicio de radiología hospitalario.
 
 - **Autores:** Marc Link Cladera y Antonio Contestí Coll — `antonio.contesti1@estudiant.uib.cat`
 - **Tutor:** Dr. Miquel Miró Nicolau — `miquel.miro@uib.es`
-- **Colaboración clínica:** Dra. Ana Estremera Rodrigo — jefa del Servei de Radiologia, Hospital Universitari Son Llàtzer
+- **Despliegue hospitalario:** previsto sobre un Servicio de Radiología del IB-Salut (validación clínica en fase posterior, supeditada a la aprobación del Comité de Ética asistencial correspondiente)
 - **Referencia internacional:** Behrendt et al. — Hamburg University of Technology, ganadores del NODE21 Challenge
 
 ## Resumen ejecutivo
 
-El trabajo aborda una pregunta concreta: qué ocurre cuando alguien externo al laboratorio de origen intenta reproducir, auditar y desplegar la implementación ganadora del NODE21 Challenge (Behrendt et al., 2023). La auditoría se realiza sobre la única implementación pública del estado del arte, con la dirección académica del Dr. Miquel Miró Nicolau (UIB) y la validación clínica de la Dra. Ana Estremera Rodrigo (Hospital Universitari Son Llàtzer).
+El trabajo aborda una pregunta concreta: qué ocurre cuando alguien externo al laboratorio de origen intenta reproducir, auditar y desplegar la implementación ganadora del NODE21 Challenge (Behrendt et al., 2023). La auditoría se realiza sobre la única implementación pública del estado del arte, con la dirección académica del Dr. Miquel Miró Nicolau (UIB) y con el sistema diseñado para integrarse en un Servicio de Radiología hospitalario, conservando la posibilidad de validación clínica prospectiva.
 
 La primera contribución es metodológica: una **auditoría sistemática** del código publicado por Behrendt et al. que cataloga 26 bugs (ocho críticos), entre los que destacan el cálculo erróneo de la métrica oficial NODE21, la mezcla entre datos de entrenamiento y test al construir las augmentaciones offline, la ausencia de seeding determinista y la pérdida silenciosa de cajas anotadas tras el preprocesado. La conclusión, documentada con trazabilidad por línea, es que la implementación de referencia es inutilizable y sólo se rescatan ~20 líneas (SWA, WeightedSampler, gradient clipping).
 
