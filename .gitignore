@@ -10,6 +10,15 @@ claude_code_context_prompt.md
 .cursor/
 .codeium/
 
+# Documento de autoría con datos personales (DNI/NIE, firmas manuscritas);
+# NO debe versionarse. Mantener solo en local; subir el escaneo firmado
+# únicamente al formulario de los premios.
+docs/Declaracion_Autoria_*.tex
+docs/Declaracion_Autoria_*.pdf
+docs/Declaracion_Autoria_*.aux
+docs/Declaracion_Autoria_*.log
+docs/Declaracion_Autoria_*.out
+
 # Secretos y entornos
 .env
 .env.*
