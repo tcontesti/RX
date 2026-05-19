@@ -7,7 +7,7 @@
 - Antonio Contesti Coll (estudiante/graduado, EPS-UIB)
 - Marc Link Cladera (proyecto base UIB, coautor)
 - Dr. Miquel Miró Nicolau (supervisor académico UIB)
-- Dra. Ana Estremera Bauzá (jefa del Servicio de Radiología, Hospital Universitari Son Llàtzer, IB-Salut)
+- Dra. Ana Estremera Rodrigo (jefa del Servicio de Radiología, Hospital Universitari Son Llàtzer, IB-Salut)
 
 **Origen:** trabajo final de la asignatura de Aprendizaje Automático EPS-UIB (curso 2024–2025, Grado en Ingeniería Informática) — desarrollo en curso como prototipo hospitalario.
 
@@ -71,7 +71,7 @@ El proyecto nace de la articulación entre tres roles complementarios:
 
 - **UIB (Escola Politècnica Superior)** — El **Dr. Miquel Miró Nicolau** aporta la dirección académica original del trabajo y el marco metodológico. **Marc Link Cladera** y **Antonio Contesti Coll** son coautores del proyecto base UIB (modelos de clasificación y detección inicial). Antonio Contesti lidera el desarrollo actual del prototipo hospitalario completo (backend, frontend, worker, módulo de validación) y la auditoría crítica del estado del arte.
 
-- **IB-Salut, Hospital Universitari Son Llàtzer** — La **Dra. Ana Estremera Bauzá**, jefa del Servicio de Radiología, aporta el conocimiento clínico, la validación del flujo de trabajo radiológico, los requisitos funcionales del prototipo (interfaz, casos de uso, integración con PACS) y la perspectiva del impacto real en consulta. La colaboración incluye el codiseño del módulo de validación y anotación.
+- **IB-Salut, Hospital Universitari Son Llàtzer** — La **Dra. Ana Estremera Rodrigo**, jefa del Servicio de Radiología, aporta el conocimiento clínico, la validación del flujo de trabajo radiológico, los requisitos funcionales del prototipo (interfaz, casos de uso, integración con PACS) y la perspectiva del impacto real en consulta. La colaboración incluye el codiseño del módulo de validación y anotación.
 
 ## 7. Madurez del proyecto
 

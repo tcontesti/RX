@@ -4,12 +4,12 @@ Material asociado al proyecto **"Detección automática de nódulos pulmonares e
 
 - **Autores:** Marc Link Cladera y Antonio Contestí Coll — `antonio.contesti1@estudiant.uib.cat`
 - **Tutor:** Dr. Miquel Miró Nicolau — `miquel.miro@uib.es`
-- **Colaboración clínica:** Dra. Ana Estremera Bauzá — jefa del Servei de Radiologia, Hospital Universitari Son Llàtzer
+- **Colaboración clínica:** Dra. Ana Estremera Rodrigo — jefa del Servei de Radiologia, Hospital Universitari Son Llàtzer
 - **Referencia internacional:** Behrendt et al. — Hamburg University of Technology, ganadores del NODE21 Challenge
 
 ## Resumen ejecutivo
 
-El trabajo aborda una pregunta concreta: qué ocurre cuando alguien externo al laboratorio de origen intenta reproducir, auditar y desplegar la implementación ganadora del NODE21 Challenge (Behrendt et al., 2023). La auditoría se realiza sobre la única implementación pública del estado del arte, con la dirección académica del Dr. Miquel Miró Nicolau (UIB) y la validación clínica de la Dra. Ana Estremera Bauzá (Hospital Universitari Son Llàtzer).
+El trabajo aborda una pregunta concreta: qué ocurre cuando alguien externo al laboratorio de origen intenta reproducir, auditar y desplegar la implementación ganadora del NODE21 Challenge (Behrendt et al., 2023). La auditoría se realiza sobre la única implementación pública del estado del arte, con la dirección académica del Dr. Miquel Miró Nicolau (UIB) y la validación clínica de la Dra. Ana Estremera Rodrigo (Hospital Universitari Son Llàtzer).
 
 La primera contribución es metodológica: una **auditoría sistemática** del código publicado por Behrendt et al. que cataloga 26 bugs (ocho críticos), entre los que destacan el cálculo erróneo de la métrica oficial NODE21, la mezcla entre datos de entrenamiento y test al construir las augmentaciones offline, la ausencia de seeding determinista y la pérdida silenciosa de cajas anotadas tras el preprocesado. La conclusión, documentada con trazabilidad por línea, es que la implementación de referencia es inutilizable y sólo se rescatan ~20 líneas (SWA, WeightedSampler, gradient clipping).
 

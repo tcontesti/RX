@@ -24,7 +24,7 @@ El proyecto se desarrolla a tres bandas: una dirección académica en la UIB, un
 
 | Persona | Rol |
 |---|---|
-| **Dra. Ana Estremera Bauzá** | Jefa del Servei de Radiologia del Hospital Universitari Son Llàtzer. Aporta el criterio clínico que enmarca el desarrollo del prototipo, define los requisitos del módulo de validación radiológica y guía la propuesta de integración con PACS y con el flujo de trabajo asistencial. |
+| **Dra. Ana Estremera Rodrigo** | Jefa del Servei de Radiologia del Hospital Universitari Son Llàtzer. Aporta el criterio clínico que enmarca el desarrollo del prototipo, define los requisitos del módulo de validación radiológica y guía la propuesta de integración con PACS y con el flujo de trabajo asistencial. |
 
 **Contacto:** vía Servei de Radiologia, Hospital Universitari Son Llàtzer. Camí de Son Llàtzer, s/n, 07198 Palma.
 

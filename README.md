@@ -1,6 +1,6 @@
 # rx-cxr-nodule-detection
 
-Material asociado al proyecto **"Detección automática de nódulos pulmonares en radiografías de tórax mediante deep learning"**, originado como **trabajo final de la asignatura de Aprendizaje Automático** de Marc Link Cladera y Antonio Contestí Coll en la Escola Politècnica Superior de la Universitat de les Illes Balears, bajo la dirección del Dr. Miquel Miró Nicolau, y extendido como prototipo asistencial en colaboración con la Dra. Ana Estremera Bauzá (jefa del Servei de Radiologia, Hospital Universitari Son Llàtzer).
+Material asociado al proyecto **"Detección automática de nódulos pulmonares en radiografías de tórax mediante deep learning"**, originado como **trabajo final de la asignatura de Aprendizaje Automático** de Marc Link Cladera y Antonio Contestí Coll en la Escola Politècnica Superior de la Universitat de les Illes Balears, bajo la dirección del Dr. Miquel Miró Nicolau, y extendido como prototipo asistencial en colaboración con la Dra. Ana Estremera Rodrigo (jefa del Servei de Radiologia, Hospital Universitari Son Llàtzer).
 
 El proyecto aborda la detección automática de nódulos pulmonares sobre radiografías de tórax combinando dos detectores complementarios (Faster R-CNN con preentrenamiento sobre VinDr-CXR y YOLOv8s) mediante un ensemble Weighted Box Fusion. La pipeline se acompaña de una auditoría sistemática del código de referencia del estado del arte (Behrendt et al., ganador del NODE21 Challenge), una cuantificación del data leakage introducido por augmentaciones offline mal agrupadas y un prototipo web operativo con módulo de validación radiológica.
 
@@ -67,7 +67,7 @@ Los datasets utilizados (NODE21, VinDr-CXR, ChestX-ray14, JSRT, PadChest, Open-I
 
 ## Colaboraciones
 
-Este proyecto se desarrolla en colaboración entre la Universitat de les Illes Balears (Dr. Miquel Miró Nicolau, Escola Politècnica Superior) y el Servei de Radiologia del Hospital Universitari Son Llàtzer (Dra. Ana Estremera Bauzá), con el objetivo de validar un asistente de cribado sobre casuística clínica real. El trabajo extiende y audita la implementación de referencia publicada por Behrendt et al. (Hamburg University of Technology), ganadora del NODE21 Challenge, cuyos resultados se documentan en *Scientific Reports* (Nature, 2023).
+Este proyecto se desarrolla en colaboración entre la Universitat de les Illes Balears (Dr. Miquel Miró Nicolau, Escola Politècnica Superior) y el Servei de Radiologia del Hospital Universitari Son Llàtzer (Dra. Ana Estremera Rodrigo), con el objetivo de validar un asistente de cribado sobre casuística clínica real. El trabajo extiende y audita la implementación de referencia publicada por Behrendt et al. (Hamburg University of Technology), ganadora del NODE21 Challenge, cuyos resultados se documentan en *Scientific Reports* (Nature, 2023).
 
 ## Licencia
 
@@ -87,7 +87,7 @@ Si este trabajo te resulta útil en tu investigación, por favor cítalo como:
                   Autom\'atico, Escola Polit\`ecnica Superior,
                   Universitat de les Illes Balears},
   note         = {Profesor: Dr. Miquel Mir\'o Nicolau. Colaboraci\'on
-                  cl\'inica: Dra. Ana Estremera Bauz\'a (Hospital
+                  cl\'inica: Dra. Ana Estremera Rodrigo\'a (Hospital
                   Universitari Son Ll\`atzer)}
 }
 ```
@@ -96,4 +96,4 @@ Si este trabajo te resulta útil en tu investigación, por favor cítalo como:
 
 - **Antonio Contestí Coll** — `antonio.contesti1@estudiant.uib.cat`
 - **Profesor:** Dr. Miquel Miró Nicolau — `miquel.miro@uib.es`
-- **Colaboración clínica:** Dra. Ana Estremera Bauzá — Servei de Radiologia, Hospital Universitari Son Llàtzer
+- **Colaboración clínica:** Dra. Ana Estremera Rodrigo — Servei de Radiologia, Hospital Universitari Son Llàtzer
