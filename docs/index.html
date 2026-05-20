@@ -128,6 +128,7 @@
     <div class="hidden sm:flex gap-8">
       <a href="#trabajo" class="link-u hover:text-ink-800 transition-colors">Trabajo</a>
       <a href="#prototipo" class="link-u hover:text-ink-800 transition-colors">Prototipo</a>
+      <a href="#capturas" class="link-u hover:text-ink-800 transition-colors">Capturas</a>
       <a href="#colaboraciones" class="link-u hover:text-ink-800 transition-colors">Colaboraciones</a>
       <a href="#material" class="link-u hover:text-ink-800 transition-colors">Material</a>
     </div>
@@ -385,13 +386,100 @@
   </div>
 </section>
 
+<!-- ─── CAPTURAS / SLIDER ──────────────────────────────────────────────────── -->
+<section id="capturas" class="border-b border-ink-200">
+  <div class="max-w-screen-xl mx-auto px-6 sm:px-10 py-24 sm:py-32">
+
+    <div class="grid grid-cols-12 gap-6 sm:gap-10 mb-16">
+      <div class="col-span-12 sm:col-span-3">
+        <div class="index-num text-[11px] tracking-wider text-ink-400">03 — Capturas</div>
+      </div>
+      <div class="col-span-12 sm:col-span-9">
+        <h2 class="display font-light text-4xl sm:text-5xl leading-[1.05] tracking-tighter-2 text-ink max-w-2xl">
+          El sistema, <span class="font-serif italic text-ink-700">en imágenes</span>.
+        </h2>
+      </div>
+    </div>
+
+    <div class="slider relative" data-slider>
+      <div class="slider-viewport overflow-hidden border border-ink-200 bg-paper" style="aspect-ratio: 16 / 10; max-height: 75vh;">
+        <div class="slider-track flex h-full transition-transform duration-700 ease-out" data-slider-track style="will-change: transform;">
+          <div class="slider-slide flex items-center justify-center" style="min-width:100%; height:100%;"><img src="screenshots/rx1.png" alt="CXR Nodule Detection — captura 1" loading="lazy" style="max-width:100%; max-height:100%; object-fit:contain;"></div>
+          <div class="slider-slide flex items-center justify-center" style="min-width:100%; height:100%;"><img src="screenshots/rx2.png" alt="CXR Nodule Detection — captura 2" loading="lazy" style="max-width:100%; max-height:100%; object-fit:contain;"></div>
+          <div class="slider-slide flex items-center justify-center" style="min-width:100%; height:100%;"><img src="screenshots/rx3.png" alt="CXR Nodule Detection — captura 3" loading="lazy" style="max-width:100%; max-height:100%; object-fit:contain;"></div>
+          <div class="slider-slide flex items-center justify-center" style="min-width:100%; height:100%;"><img src="screenshots/rx4.png" alt="CXR Nodule Detection — captura 4" loading="lazy" style="max-width:100%; max-height:100%; object-fit:contain;"></div>
+        </div>
+      </div>
+
+      <button class="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 w-10 h-10 sm:w-12 sm:h-12 bg-paper/90 backdrop-blur border border-ink-200 rounded-full flex items-center justify-center text-ink-700 hover:border-ink-900 hover:text-ink transition-colors" data-slider-prev aria-label="Anterior">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+      </button>
+      <button class="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 w-10 h-10 sm:w-12 sm:h-12 bg-paper/90 backdrop-blur border border-ink-200 rounded-full flex items-center justify-center text-ink-700 hover:border-ink-900 hover:text-ink transition-colors" data-slider-next aria-label="Siguiente">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+      </button>
+
+      <div class="flex justify-center items-center gap-3 mt-6 sm:mt-8" data-slider-dots></div>
+
+      <div class="flex justify-center mt-3">
+        <span class="index-num text-[10px] tracking-widest-2 text-ink-400" data-slider-counter>01 / 04</span>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<script>
+(function () {
+  const sliders = document.querySelectorAll('[data-slider]');
+  sliders.forEach(slider => {
+    const track = slider.querySelector('[data-slider-track]');
+    const slides = track.querySelectorAll('.slider-slide');
+    const prevBtn = slider.querySelector('[data-slider-prev]');
+    const nextBtn = slider.querySelector('[data-slider-next]');
+    const dotsContainer = slider.querySelector('[data-slider-dots]');
+    const counter = slider.querySelector('[data-slider-counter]');
+    const total = slides.length;
+    let current = 0;
+    let interval = null;
+    const pad = (n) => String(n).padStart(2, '0');
+    slides.forEach((_, i) => {
+      const d = document.createElement('button');
+      d.setAttribute('aria-label', 'Imagen ' + (i + 1));
+      d.style.cssText = 'width:24px;height:1px;background:#d4d4d4;border:0;padding:0;cursor:pointer;transition:all 0.3s;';
+      d.addEventListener('click', () => { goTo(i); restart(); });
+      dotsContainer.appendChild(d);
+    });
+    const dots = dotsContainer.querySelectorAll('button');
+    function goTo(i) {
+      current = (i + total) % total;
+      track.style.transform = 'translateX(-' + (current * 100) + '%)';
+      dots.forEach((d, j) => { d.style.background = j === current ? '#0a0a0a' : '#d4d4d4'; d.style.height = j === current ? '2px' : '1px'; });
+      if (counter) counter.textContent = pad(current + 1) + ' / ' + pad(total);
+    }
+    function start() { interval = setInterval(() => goTo(current + 1), 6000); }
+    function stop() { if (interval) { clearInterval(interval); interval = null; } }
+    function restart() { stop(); start(); }
+    prevBtn.addEventListener('click', () => { goTo(current - 1); restart(); });
+    nextBtn.addEventListener('click', () => { goTo(current + 1); restart(); });
+    slider.addEventListener('mouseenter', stop);
+    slider.addEventListener('mouseleave', start);
+    slider.tabIndex = 0;
+    slider.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowLeft') { goTo(current - 1); restart(); }
+      else if (e.key === 'ArrowRight') { goTo(current + 1); restart(); }
+    });
+    goTo(0); start();
+  });
+})();
+</script>
+
 <!-- COLABORACIONES -->
 <section id="colaboraciones" class="border-b border-ink-200">
   <div class="max-w-screen-xl mx-auto px-6 sm:px-10 py-24 sm:py-32">
 
     <div class="grid grid-cols-12 gap-6 sm:gap-10 mb-20">
       <div class="col-span-12 sm:col-span-3">
-        <div class="index-num text-[11px] tracking-wider text-ink-400">03 — Colaboraciones</div>
+        <div class="index-num text-[11px] tracking-wider text-ink-400">04 — Colaboraciones</div>
       </div>
       <div class="col-span-12 sm:col-span-9">
         <h2 class="display font-light text-4xl sm:text-5xl leading-[1.05] tracking-tighter-2 text-ink max-w-2xl">
@@ -450,7 +538,7 @@
 
     <div class="grid grid-cols-12 gap-6 sm:gap-10 mb-20">
       <div class="col-span-12 sm:col-span-3">
-        <div class="index-num text-[11px] tracking-wider text-ink-400">04 — Material</div>
+        <div class="index-num text-[11px] tracking-wider text-ink-400">05 — Material</div>
       </div>
       <div class="col-span-12 sm:col-span-9">
         <h2 class="display font-light text-4xl sm:text-5xl leading-[1.05] tracking-tighter-2 text-ink max-w-2xl">
@@ -548,7 +636,7 @@
 
     <div class="grid grid-cols-12 gap-6 sm:gap-10 mb-16">
       <div class="col-span-12 sm:col-span-3">
-        <div class="index-num text-[11px] tracking-wider text-ink-400">05 — Citación</div>
+        <div class="index-num text-[11px] tracking-wider text-ink-400">06 — Citación</div>
       </div>
       <div class="col-span-12 sm:col-span-9">
         <h2 class="display font-light text-4xl sm:text-5xl leading-[1.05] tracking-tighter-2 text-ink max-w-2xl">
